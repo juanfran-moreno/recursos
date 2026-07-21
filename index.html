@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AulaDigital - Repositorio de Recursos Educación Primaria</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+        .card-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-transition:hover {
+            transform: translateY(-4px);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-full text-slate-800 antialiased selection:bg-sky-500 selection:text-white">
+
+    <!-- Navbar / Header -->
+    <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo & Branding -->
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/20">
+                        <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-900 via-sky-900 to-indigo-900 bg-clip-text text-transparent">
+                            AulaDigital <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 ml-1">Primaria</span>
+                        </h1>
+                        <p class="text-xs text-slate-500 font-medium hidden sm:block">Catálogo Central de Recursos Didácticos y Tutoría</p>
+                    </div>
+                </div>
+
+                <!-- Live Quick Stats -->
+                <div class="hidden md:flex items-center gap-6 text-sm">
+                    <div class="flex items-center gap-2 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/60">
+                        <i class="fa-solid fa-folder-open text-sky-600"></i>
+                        <span class="text-slate-600">Total Recursos:</span>
+                        <span id="total-count-badge" class="font-bold text-slate-900">0</span>
+                    </div>
+                    <div class="flex items-center gap-2 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/60">
+                        <i class="fa-solid fa-layer-group text-indigo-600"></i>
+                        <span class="text-slate-600">Visibles:</span>
+                        <span id="visible-count-badge" class="font-bold text-indigo-600">0</span>
+                    </div>
+                </div>
+
+                <!-- Actions Bar: New Resource, Backup JSON & Load JSON -->
+                <div class="flex items-center gap-2">
+                    <button id="open-add-modal-btn" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 transition-all">
+                        <i class="fa-solid fa-plus text-xs"></i> <span>Nuevo Recurso</span>
+                    </button>
+                    
+                    <button id="export-json-btn" title="Descargar copia de seguridad en JSON" class="p-2 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all">
+                        <i class="fa-solid fa-download text-sky-600"></i> <span class="hidden md:inline">Exportar JSON</span>
+                    </button>
+                    
+                    <label title="Cargar copia de seguridad desde JSON" class="p-2 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 cursor-pointer transition-all">
+                        <i class="fa-solid fa-upload text-indigo-600"></i> <span class="hidden md:inline">Importar JSON</span>
+                        <input type="file" id="import-json-input" accept=".json" class="hidden">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Banner & Interactive Search -->
+    <section class="bg-gradient-to-b from-sky-50/70 via-indigo-50/30 to-slate-50 py-8 md:py-10 border-b border-slate-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-8">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-3">
+                    <i class="fa-solid fa-sparkles"></i> Repositorio Docente Actualizado
+                </span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Encuentra actividades y materiales para tu aula
+                </h2>
+                <p class="mt-2 text-sm sm:text-base text-slate-600">
+                    Filtra fácilmente contenidos adaptados por curso y área de conocimiento para proyectar o imprimir.
+                </p>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="max-w-2xl mx-auto">
+                <div class="relative flex items-center shadow-md rounded-2xl bg-white border border-slate-200 focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500 transition-all">
+                    <div class="pl-4 text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass text-lg"></i>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        placeholder="Buscar por título, palabra clave o concepto (ej: tablas, gramática, lecturas...)" 
+                        class="w-full py-3.5 pl-3 pr-10 text-sm bg-transparent rounded-2xl focus:outline-none text-slate-800 placeholder-slate-400"
+                    >
+                    <button 
+                        id="clear-search-btn" 
+                        class="hidden absolute right-3 p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                        title="Limpiar búsqueda"
+                    >
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+        
+        <div class="space-y-6 mb-8 bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+            
+            <!-- Filter Group 1: Grade / Course (Curso) -->
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                        <i class="fa-solid fa-school text-sky-500"></i> Nivel / Curso Escolar:
+                    </h3>
+                    <span id="active-grade-label" class="text-xs font-medium text-sky-600 bg-sky-50 px-2 py-0.5 rounded-md">Todos los Cursos</span>
+                </div>
+                
+                <div class="flex flex-wrap gap-2" id="grade-buttons-container">
+                    <button data-grade="all" class="grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-sky-600 text-white border-sky-600 shadow-sm hover:bg-sky-700">
+                        <i class="fa-solid fa-asterisk text-[10px] mr-1"></i> Todos
+                    </button>
+                    <button data-grade="1º Primaria" class="grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300">
+                        1º Primaria
+                    </button>
+                    <button data-grade="2º Primaria" class="grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300">
+                        2º Primaria
+                    </button>
+                    <button data-grade="3º Primaria" class="grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300">
+                        3º Primaria
+                    </button>
+                    <button data-grade="4º Primaria" class="grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300">
+                        4º Primaria
+                    </button>
+                    <button data-grade="5º Primaria" class="grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300">
+                        5º Primaria
+                    </button>
+                    <button data-grade="6º Primaria" class="grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300">
+                        6º Primaria
+                    </button>
+                </div>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <!-- Filter Group 2: Subject / Area (Asignatura) -->
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                        <i class="fa-solid fa-book-open text-indigo-500"></i> Asignatura / Área:
+                    </h3>
+                    <span id="active-subject-label" class="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">Todas las Áreas</span>
+                </div>
+
+                <div class="flex flex-wrap gap-2" id="subject-buttons-container">
+                    <button data-subject="all" class="subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-indigo-600 text-white border-indigo-600 shadow-sm hover:bg-indigo-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-border-all"></i> Todas
+                    </button>
+                    <button data-subject="Matemáticas" class="subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-calculator text-blue-500"></i> Matemáticas
+                    </button>
+                    <button data-subject="Lengua Castellana" class="subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-pen-nib text-emerald-500"></i> Lengua Castellana
+                    </button>
+                    <button data-subject="Inglés" class="subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-language text-amber-500"></i> Inglés
+                    </button>
+                    <button data-subject="Ciencias Naturales" class="subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-leaf text-teal-500"></i> Ciencias Naturales
+                    </button>
+                    <button data-subject="Ciencias Sociales" class="subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-earth-americas text-rose-500"></i> Ciencias Sociales
+                    </button>
+                    <button data-subject="Tutoría" class="subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-purple-50 hover:text-purple-700 hover:border-purple-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-heart text-purple-500"></i> Tutoría
+                    </button>
+                </div>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <!-- Filter Group 3: Dynamic Tags -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                            <i class="fa-solid fa-tags text-amber-500"></i> Etiquetas / Temas Clave:
+                        </h3>
+                        <!-- Button to show/hide tags section -->
+                        <button id="toggle-tags-btn" class="text-xs text-amber-600 hover:text-amber-800 font-semibold px-2 py-0.5 rounded-md bg-amber-50 hover:bg-amber-100 transition-colors flex items-center gap-1" title="Mostrar u ocultar sección de etiquetas">
+                            <i id="toggle-tags-icon" class="fa-solid fa-eye-slash text-[10px]"></i>
+                            <span id="toggle-tags-text">Ocultar</span>
+                        </button>
+                    </div>
+                    <span id="active-tag-label" class="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">Todas las Etiquetas</span>
+                </div>
+                
+                <!-- Tag Filter Section Content (Collapsible) -->
+                <div id="tags-section-content" class="space-y-2.5">
+                    <!-- Dedicated Tag Search Bar -->
+                    <div class="relative flex items-center max-w-xs">
+                        <i class="fa-solid fa-magnifying-glass absolute left-2.5 text-slate-400 text-xs"></i>
+                        <input 
+                            type="text" 
+                            id="tag-search-input" 
+                            placeholder="Buscar etiqueta..." 
+                            class="w-full pl-8 pr-7 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-500 focus:bg-white text-slate-700 placeholder-slate-400"
+                        >
+                        <button id="clear-tag-search-btn" class="hidden absolute right-2 text-slate-400 hover:text-slate-600 text-xs">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5" id="tags-buttons-container">
+                        <!-- Dynamic tag chips inserted by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Filters Status Bar & Reset Button -->
+            <div class="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 text-xs">
+                <div class="flex items-center gap-2 text-slate-500">
+                    <span>Filtros activos:</span>
+                    <span id="active-filters-summary" class="font-medium text-slate-800">Ninguno (Mostrando todos)</span>
+                </div>
+                <button 
+                    id="reset-filters-btn" 
+                    class="text-sky-600 hover:text-sky-800 font-semibold hover:underline inline-flex items-center gap-1 transition-colors"
+                >
+                    <i class="fa-solid fa-rotate-left"></i> Restablecer filtros
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Grid Bar -->
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-grid-2 text-slate-400"></i> Catálogo de Recursos
+            </h2>
+            <p class="text-xs text-slate-500">
+                Mostrando <span id="showing-count" class="font-bold text-slate-800">0</span> de <span id="total-grid-count">0</span> resultados
+            </p>
+        </div>
+
+        <!-- Cards Grid Container -->
+        <div id="resources-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Dynamic Cards inserted by JS -->
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="empty-state" class="hidden py-16 text-center bg-white rounded-3xl border border-dashed border-slate-300 p-8">
+            <div class="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <h3 class="text-lg font-bold text-slate-800 mb-1">No se encontraron recursos</h3>
+            <p class="text-sm text-slate-500 max-w-md mx-auto mb-6">
+                Prueba a ajustar la búsqueda o seleccionar otra combinación de curso y asignatura.
+            </p>
+            <button 
+                onclick="resetFilters()" 
+                class="px-4 py-2 bg-sky-600 text-white font-medium text-sm rounded-xl hover:bg-sky-700 transition-colors inline-flex items-center gap-2 shadow-sm"
+            >
+                <i class="fa-solid fa-arrows-rotate"></i> Ver todos los recursos
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Resource Detail Modal -->
+    <div id="resource-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl transform scale-95 transition-transform duration-300 border border-slate-100 relative">
+            
+            <button id="close-modal-btn" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div id="modal-icon-bg" class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-white shadow-md">
+                    <i id="modal-icon" class="fa-solid fa-book"></i>
+                </div>
+                <div>
+                    <span id="modal-subject-badge" class="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider">Matemáticas</span>
+                    <span id="modal-grade-badge" class="ml-2 text-xs font-semibold text-slate-500">4º Primaria</span>
+                </div>
+            </div>
+
+            <h3 id="modal-title" class="text-xl font-bold text-slate-900 mb-2">Título del Recurso</h3>
+            
+            <p id="modal-description" class="text-slate-600 text-sm leading-relaxed mb-6">
+                Descripción detallada del contenido del recurso didáctico...
+            </p>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 mb-6 space-y-2 text-xs text-slate-600">
+                <div class="flex items-center justify-between">
+                    <span class="font-medium text-slate-500"><i class="fa-solid fa-file-circle-check text-sky-500 mr-1.5"></i> Formato:</span>
+                    <span id="modal-format" class="font-bold text-slate-800">PDF / Ficha Interactiva</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="font-medium text-slate-500"><i class="fa-solid fa-clock text-amber-500 mr-1.5"></i> Tiempo estimado:</span>
+                    <span id="modal-duration" class="font-bold text-slate-800">30 minutos</span>
+                </div>
+                <div class="flex items-start justify-between">
+                    <span class="font-medium text-slate-500 pt-0.5"><i class="fa-solid fa-tags text-amber-500 mr-1.5"></i> Etiquetas:</span>
+                    <div id="modal-tag" class="flex flex-wrap gap-1 justify-end max-w-[240px]">
+                        <!-- Dynamic tag chips -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a 
+                    id="modal-download-link" 
+                    href="#" 
+                    target="_blank" 
+                    class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-4 rounded-xl text-center text-sm shadow-md shadow-sky-600/20 transition-colors flex items-center justify-center gap-2"
+                >
+                    <i class="fa-solid fa-arrow-down-to-line"></i> Abrir / Descargar Recurso
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Adding a New Educational Resource -->
+    <div id="add-resource-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl transform scale-95 transition-transform duration-300 border border-slate-100 relative max-h-[90vh] overflow-y-auto">
+            
+            <button id="close-add-modal-btn" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 p-2 rounded-full hover:bg-slate-100 transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                    <i class="fa-solid fa-plus text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900">Añadir Nuevo Recurso</h3>
+                    <p class="text-xs text-slate-500">Introduce los datos del contenido para incorporarlo al catálogo</p>
+                </div>
+            </div>
+
+            <form id="add-resource-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Título del Recurso *</label>
+                    <input type="text" id="add-title" required placeholder="Ej: Ejercicios de Fracciones Equivalentes" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Asignatura *</label>
+                        <select id="add-subject" required class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                            <option value="Matemáticas">Matemáticas</option>
+                            <option value="Lengua Castellana">Lengua Castellana</option>
+                            <option value="Inglés">Inglés</option>
+                            <option value="Ciencias Naturales">Ciencias Naturales</option>
+                            <option value="Ciencias Sociales">Ciencias Sociales</option>
+                            <option value="Tutoría">Tutoría</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Curso Escolar *</label>
+                        <select id="add-grade" required class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                            <option value="1º Primaria">1º Primaria</option>
+                            <option value="2º Primaria">2º Primaria</option>
+                            <option value="3º Primaria">3º Primaria</option>
+                            <option value="4º Primaria">4º Primaria</option>
+                            <option value="5º Primaria">5º Primaria</option>
+                            <option value="6º Primaria">6º Primaria</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Icono Representativo *</label>
+                        <select id="add-icon" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+                            <option value="fa-calculator">🧮 Calculadora (Matemáticas)</option>
+                            <option value="fa-pen-nib">✒️ Pluma / Escritura (Lengua)</option>
+                            <option value="fa-language">🗣️ Idioma / Speech (Inglés)</option>
+                            <option value="fa-leaf">🍃 Hoja / Biología (Naturales)</option>
+                            <option value="fa-earth-americas">🌎 Globo / Geografía (Sociales)</option>
+                            <option value="fa-heart">❤️ Corazón / Emociones (Tutoría)</option>
+                            <option value="fa-flask">🧪 Frasco / Experimentos</option>
+                            <option value="fa-brain">🧠 Cerebro / Razonamiento</option>
+                            <option value="fa-palette">🎨 Paleta / Arte y Dibujo</option>
+                            <option value="fa-music">🎵 Nota Musical / Audios</option>
+                            <option value="fa-film">🎬 Vídeo / Película</option>
+                            <option value="fa-laptop-code">💻 Ordenador / TIC</option>
+                            <option value="fa-puzzle-piece">🧩 Pieza de Puzle / Juegos</option>
+                            <option value="fa-shapes">📐 Formas Geométricas</option>
+                            <option value="fa-lightbulb">💡 Bombilla / Ideas Creativas</option>
+                            <option value="fa-graduation-cap">🎓 Birrete / Evaluación</option>
+                            <option value="fa-comments">💬 Bocadillos / Expresión Oral</option>
+                            <option value="fa-book-open">📖 Libro Abierto / Lectura</option>
+                            <option value="fa-star">⭐ Estrella / Destacado</option>
+                            <option value="fa-compass">🧭 Brújula / Historia</option>
+                            <option value="fa-users">👥 Grupo / Trabajo en equipo</option>
+                            <option value="fa-gamepad">🎮 Mando / Gamificación</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Formato del Recurso</label>
+                        <input type="text" id="add-format" placeholder="Ej: Ficha PDF / PPT / Audio MP3" value="Ficha PDF / Imprimible" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tiempo Estimado</label>
+                        <input type="text" id="add-duration" placeholder="Ej: 30 min" value="30 min" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Etiquetas (separadas por comas)</label>
+                        <input type="text" id="add-tag" placeholder="Ej: Cálculo, Refuerzo, Juegos" value="Refuerzo, Repaso" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Descripción *</label>
+                    <textarea id="add-description" rows="3" required placeholder="Resumen detallado de las actividades o contenidos..." class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Enlace / URL de Descarga</label>
+                    <input type="url" id="add-link" placeholder="https://..." value="https://ejemplo.com/recurso.pdf" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div class="pt-3 flex items-center gap-3">
+                    <button type="button" id="cancel-add-modal-btn" class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 text-slate-700 font-semibold text-xs sm:text-sm hover:bg-slate-100 transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition-colors">
+                        Guardar Recurso
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 transform translate-y-20 opacity-0 transition-all duration-300 text-xs sm:text-sm pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+        <span id="toast-message">Notificación</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-8 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 space-y-3">
+            <div class="flex items-center justify-center gap-2 text-slate-700 font-bold text-sm">
+                <i class="fa-solid fa-graduation-cap text-sky-600"></i> Catálogo Didáctico de Educación Primaria
+            </div>
+            <p>Diseñado para profesores, tutores y alumnado. Recursos educativos de acceso libre y rápido.</p>
+            <p class="text-slate-400">© 2026 AulaDigital Primaria - Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        const defaultResourcesData = [
+            {
+                id: 1,
+                title: "Multiplica Jugando: Tablas del 1 al 10",
+                subject: "Matemáticas",
+                grade: "3º Primaria",
+                description: "Colección de juegos imprimibles y fichas rápidas para automatizar la memorización y comprensión de las tablas de multiplicar.",
+                icon: "fa-calculator",
+                format: "Ficha PDF / Imprimible",
+                duration: "20 min",
+                tags: ["Cálculo Mental", "Tablas", "Juegos"],
+                link: "https://ejemplo.com/recursos/tablas-multiplicar.pdf"
+            },
+            {
+                id: 2,
+                title: "Reading Comprehension: My Daily Routine",
+                subject: "Inglés",
+                grade: "4º Primaria",
+                description: "Short story with reading comprehension questions, present simple vocabulary, and daily activities worksheets.",
+                icon: "fa-language",
+                format: "PDF + Audio MP3",
+                duration: "30 min",
+                tags: ["Lectura", "Vocabulario", "Gramática"],
+                link: "https://ejemplo.com/recursos/english-reading.pdf"
+            },
+            {
+                id: 3,
+                title: "Comprensión Lectora y Ortografía Divertida",
+                subject: "Lengua Castellana",
+                grade: "2º Primaria",
+                description: "Fichas adaptadas con lecturas cortas sobre animales, ejercicios de respuesta múltiple y reglas básicas de la B y la V.",
+                icon: "fa-pen-nib",
+                format: "Cuadernillo PDF",
+                duration: "25 min",
+                tags: ["Lectura", "Ortografía", "Refuerzo"],
+                link: "https://ejemplo.com/recursos/lengua-comprension.pdf"
+            },
+            {
+                id: 4,
+                title: "El Cuerpo Humano: Aparatos y Sistemas",
+                subject: "Ciencias Naturales",
+                grade: "5º Primaria",
+                description: "Presentación interactiva y esquema conceptual sobre el aparato digestivo, respiratorio, circulatorio y excretor.",
+                icon: "fa-flask",
+                format: "Diapositivas / PPT",
+                duration: "45 min",
+                tags: ["Anatomía", "Experimentos", "Esquema"],
+                link: "https://ejemplo.com/recursos/cuerpo-humano.pdf"
+            },
+            {
+                id: 5,
+                title: "Mapa Interactivo de España: Provincias",
+                subject: "Ciencias Sociales",
+                grade: "4º Primaria",
+                description: "Ficha mudo de relieve, ríos y comunidades autónomas de España para completar en clase o en casa.",
+                icon: "fa-earth-americas",
+                format: "Mapa Interactivo",
+                duration: "35 min",
+                tags: ["Geografía", "Mapas", "TIC"],
+                link: "https://ejemplo.com/recursos/mapa-espana.pdf"
+            },
+            {
+                id: 6,
+                title: "Gestión Emocional: Rueda de la Calma",
+                subject: "Tutoría",
+                grade: "1º Primaria",
+                description: "Dinámica grupal para la identificación de emociones (alegría, enfado, miedo) y técnicas sencillas de respiración consciente.",
+                icon: "fa-heart",
+                format: "Guía Didáctica Docente",
+                duration: "40 min",
+                tags: ["Emociones", "Convivencia", "Dinámicas"],
+                link: "https://ejemplo.com/recursos/rueda-calma.pdf"
+            },
+            {
+                id: 7,
+                title: "Fracciones y Decimales en la Vida Real",
+                subject: "Matemáticas",
+                grade: "6º Primaria",
+                description: "Problemas prácticos contextualizados en compras de supermercado y recetas de cocina para entender equivalencias.",
+                icon: "fa-brain",
+                format: "Taller Práctico",
+                duration: "50 min",
+                tags: ["Problemas", "Cálculo Mental", "Refuerzo"],
+                link: "https://ejemplo.com/recursos/fracciones.pdf"
+            },
+            {
+                id: 8,
+                title: "Grammar Champions: Present Simple vs Continuous",
+                subject: "Inglés",
+                grade: "5º Primaria",
+                description: "Interactive cards and group speaking prompts to practice differences between routines and actions happening now.",
+                icon: "fa-comments",
+                format: "Juego de Tarjetas",
+                duration: "30 min",
+                tags: ["Gramática", "Oral", "Juegos"],
+                link: "https://ejemplo.com/recursos/english-grammar.pdf"
+            },
+            {
+                id: 9,
+                title: "Análisis Sintáctico Fácil: Sujeto y Predicado",
+                subject: "Lengua Castellana",
+                grade: "6º Primaria",
+                description: "Guía paso a paso para identificar el núcleo del sujeto, predicado verbal/nominal y complementos básicos en oraciones simples.",
+                icon: "fa-pen-nib",
+                format: "Esquema + Ejercicios",
+                duration: "40 min",
+                tags: ["Sintaxis", "Gramática", "Examen"],
+                link: "https://ejemplo.com/recursos/sintaxis.pdf"
+            },
+            {
+                id: 10,
+                title: "Ecosistemas y Cadenas Tróficas",
+                subject: "Ciencias Naturales",
+                grade: "3º Primaria",
+                description: "Actividad recortable para construir pirámides alimenticias de productores, consumidores y descomponedores.",
+                icon: "fa-leaf",
+                format: "Ficha Recortable",
+                duration: "30 min",
+                tags: ["Ecología", "Manualidades", "Esquema"],
+                link: "https://ejemplo.com/recursos/ecosistemas.pdf"
+            },
+            {
+                id: 11,
+                title: "Resolución de Conflictos: El Semáforo del Aula",
+                subject: "Tutoría",
+                grade: "4º Primaria",
+                description: "Protocolo visual para fomentar el diálogo asertivo y la empatía entre compañeros durante el recreo y el trabajo en equipo.",
+                icon: "fa-users",
+                format: "Póster del Aula",
+                duration: "15 min",
+                tags: ["Convivencia", "Emociones", "Valores"],
+                link: "https://ejemplo.com/recursos/semaforo-conflicto.pdf"
+            },
+            {
+                id: 12,
+                title: "La Prehistoria y las Primeras Civilizaciones",
+                subject: "Ciencias Sociales",
+                grade: "5º Primaria",
+                description: "Línea del tiempo gráfica ilustrada con el Paleolítico, Neolítico y Edad de los Metales.",
+                icon: "fa-compass",
+                format: "Infografía Ilustrada",
+                duration: "45 min",
+                tags: ["Historia", "Esquema", "Línea del tiempo"],
+                link: "https://ejemplo.com/recursos/prehistoria.pdf"
+            }
+        ];
+
+        // Load active resources from LocalStorage if available
+        let resourcesData = JSON.parse(localStorage.getItem('aulaDigital_resources')) || [...defaultResourcesData];
+
+        function saveResourcesToStorage() {
+            localStorage.setItem('aulaDigital_resources', JSON.stringify(resourcesData));
+        }
+
+        // State variables
+        let currentGrade = 'all';
+        let currentSubject = 'all';
+        let currentTag = 'all';
+        let searchQuery = '';
+        let tagSearchQuery = '';
+        let isTagsVisible = true;
+
+        // Color theme mapping for Subjects
+        const subjectThemeMap = {
+            'Matemáticas': {
+                bg: 'bg-blue-50',
+                border: 'border-blue-200',
+                text: 'text-blue-700',
+                badgeBg: 'bg-blue-100',
+                iconBg: 'bg-blue-600',
+                hoverBorder: 'hover:border-blue-300'
+            },
+            'Lengua Castellana': {
+                bg: 'bg-emerald-50',
+                border: 'border-emerald-200',
+                text: 'text-emerald-700',
+                badgeBg: 'bg-emerald-100',
+                iconBg: 'bg-emerald-600',
+                hoverBorder: 'hover:border-emerald-300'
+            },
+            'Inglés': {
+                bg: 'bg-amber-50',
+                border: 'border-amber-200',
+                text: 'text-amber-800',
+                badgeBg: 'bg-amber-100',
+                iconBg: 'bg-amber-500',
+                hoverBorder: 'hover:border-amber-300'
+            },
+            'Ciencias Naturales': {
+                bg: 'bg-teal-50',
+                border: 'border-teal-200',
+                text: 'text-teal-700',
+                badgeBg: 'bg-teal-100',
+                iconBg: 'bg-teal-600',
+                hoverBorder: 'hover:border-teal-300'
+            },
+            'Ciencias Sociales': {
+                bg: 'bg-rose-50',
+                border: 'border-rose-200',
+                text: 'text-rose-700',
+                badgeBg: 'bg-rose-100',
+                iconBg: 'bg-rose-600',
+                hoverBorder: 'hover:border-rose-300'
+            },
+            'Tutoría': {
+                bg: 'bg-purple-50',
+                border: 'border-purple-200',
+                text: 'text-purple-700',
+                badgeBg: 'bg-purple-100',
+                iconBg: 'bg-purple-600',
+                hoverBorder: 'hover:border-purple-300'
+            }
+        };
+
+        const resourcesGrid = document.getElementById('resources-grid');
+        const emptyState = document.getElementById('empty-state');
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+        const totalCountBadge = document.getElementById('total-count-badge');
+        const visibleCountBadge = document.getElementById('visible-count-badge');
+        const showingCount = document.getElementById('showing-count');
+        const totalGridCount = document.getElementById('total-grid-count');
+        const activeFiltersSummary = document.getElementById('active-filters-summary');
+        const activeGradeLabel = document.getElementById('active-grade-label');
+        const activeSubjectLabel = document.getElementById('active-subject-label');
+        const activeTagLabel = document.getElementById('active-tag-label');
+
+        // Modal DOM elements
+        const resourceModal = document.getElementById('resource-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalIconBg = document.getElementById('modal-icon-bg');
+        const modalIcon = document.getElementById('modal-icon');
+        const modalSubjectBadge = document.getElementById('modal-subject-badge');
+        const modalGradeBadge = document.getElementById('modal-grade-badge');
+        const modalTitle = document.getElementById('modal-title');
+        modalDescription = document.getElementById('modal-description');
+        const modalFormat = document.getElementById('modal-format');
+        const modalDuration = document.getElementById('modal-duration');
+        const modalTag = document.getElementById('modal-tag');
+        const modalDownloadLink = document.getElementById('modal-download-link');
+
+        // Add Resource Modal DOM elements
+        const addResourceModal = document.getElementById('add-resource-modal');
+        const openAddModalBtn = document.getElementById('open-add-modal-btn');
+        const closeAddModalBtn = document.getElementById('close-add-modal-btn');
+        const cancelAddModalBtn = document.getElementById('cancel-add-modal-btn');
+        const addResourceForm = document.getElementById('add-resource-form');
+
+        // Tag Search and Visibility Controls
+        const tagSearchInput = document.getElementById('tag-search-input');
+        const clearTagSearchBtn = document.getElementById('clear-tag-search-btn');
+        const tagsSectionContent = document.getElementById('tags-section-content');
+        const toggleTagsBtn = document.getElementById('toggle-tags-btn');
+        const toggleTagsIcon = document.getElementById('toggle-tags-icon');
+        const toggleTagsText = document.getElementById('toggle-tags-text');
+
+        function getResourceTags(resource) {
+            if (Array.isArray(resource.tags) && resource.tags.length > 0) {
+                return resource.tags;
+            }
+            if (resource.tag) {
+                return [resource.tag];
+            }
+            return ['General'];
+        }
+
+        function renderTagFilters() {
+            const container = document.getElementById('tags-buttons-container');
+            if (!container) return;
+
+            const tagsCountMap = {};
+            resourcesData.forEach(item => {
+                const tags = getResourceTags(item);
+                tags.forEach(t => {
+                    const cleanTag = t.trim();
+                    if (cleanTag) {
+                        tagsCountMap[cleanTag] = (tagsCountMap[cleanTag] || 0) + 1;
+                    }
+                });
+            });
+
+            // Filter tags using the dedicated tag search query
+            const q = tagSearchQuery.toLowerCase().trim();
+            const sortedTags = Object.keys(tagsCountMap)
+                .filter(tag => q === '' || tag.toLowerCase().includes(q))
+                .sort();
+
+            let html = `
+                <button 
+                    onclick="setTagFilter('all')" 
+                    class="px-3 py-1 rounded-lg text-xs font-semibold transition-all ${currentTag === 'all' ? 'bg-amber-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}"
+                >
+                    Todas (${resourcesData.length})
+                </button>
+            `;
+
+            if (sortedTags.length === 0 && q !== '') {
+                html += `<span class="text-xs text-slate-400 italic py-1">No se encontraron etiquetas que coincidan</span>`;
+            } else {
+                sortedTags.forEach(tag => {
+                    const count = tagsCountMap[tag];
+                    const isActive = currentTag === tag;
+                    html += `
+                        <button 
+                            onclick="setTagFilter('${tag}')" 
+                            class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${isActive ? 'bg-amber-600 text-white font-semibold shadow-sm' : 'bg-amber-50 text-amber-800 border border-amber-200/70 hover:bg-amber-100'}"
+                        >
+                            <i class="fa-solid fa-tag text-[10px]"></i>
+                            <span>${tag}</span>
+                            <span class="text-[10px] opacity-75">(${count})</span>
+                        </button>
+                    `;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        if (tagSearchInput) {
+            tagSearchInput.addEventListener('input', (e) => {
+                tagSearchQuery = e.target.value;
+                if (tagSearchQuery.length > 0) {
+                    clearTagSearchBtn.classList.remove('hidden');
+                } else {
+                    clearTagSearchBtn.classList.add('hidden');
+                }
+                renderTagFilters();
+            });
+        }
+
+        if (clearTagSearchBtn) {
+            clearTagSearchBtn.addEventListener('click', () => {
+                if (tagSearchInput) tagSearchInput.value = '';
+                tagSearchQuery = '';
+                clearTagSearchBtn.classList.add('hidden');
+                renderTagFilters();
+            });
+        }
+
+        if (toggleTagsBtn) {
+            toggleTagsBtn.addEventListener('click', () => {
+                isTagsVisible = !isTagsVisible;
+                if (isTagsVisible) {
+                    tagsSectionContent.classList.remove('hidden');
+                    toggleTagsIcon.className = 'fa-solid fa-eye-slash text-[10px]';
+                    toggleTagsText.textContent = 'Ocultar';
+                } else {
+                    tagsSectionContent.classList.add('hidden');
+                    toggleTagsIcon.className = 'fa-solid fa-eye text-[10px]';
+                    toggleTagsText.textContent = 'Mostrar';
+                }
+            });
+        }
+
+        function setTagFilter(tag) {
+            currentTag = tag;
+            filterResources();
+        }
+
+        function createCardElement(resource) {
+            const theme = subjectThemeMap[resource.subject] || {
+                bg: 'bg-slate-50',
+                border: 'border-slate-200',
+                text: 'text-slate-700',
+                badgeBg: 'bg-slate-100',
+                iconBg: 'bg-slate-700',
+                hoverBorder: 'hover:border-slate-300'
+            };
+
+            const tags = getResourceTags(resource);
+            const tagsHTML = tags.map(t => `
+                <button 
+                    onclick="event.stopPropagation(); setTagFilter('${t}')" 
+                    class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 hover:bg-amber-100 hover:text-amber-800 text-slate-600 border border-slate-200/80 transition-colors inline-flex items-center gap-1"
+                    title="Filtrar por etiqueta: ${t}"
+                >
+                    <i class="fa-solid fa-tag text-[9px] text-amber-500"></i> ${t}
+                </button>
+            `).join(' ');
+
+            const card = document.createElement('div');
+            card.className = `card-transition bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md ${theme.hoverBorder}`;
+            
+            card.innerHTML = `
+                <div>
+                    <!-- Top Info Header -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 rounded-xl ${theme.iconBg} flex items-center justify-center text-white shadow-sm">
+                                <i class="fa-solid ${resource.icon} text-lg"></i>
+                            </div>
+                            <div>
+                                <span class="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold ${theme.badgeBg} ${theme.text}">
+                                    ${resource.subject}
+                                </span>
+                            </div>
+                        </div>
+                        <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200/60">
+                            ${resource.grade}
+                        </span>
+                    </div>
+
+                    <!-- Title & Description -->
+                    <h3 class="text-base font-bold text-slate-900 mb-1.5 line-clamp-2 hover:text-sky-600 transition-colors">
+                        ${resource.title}
+                    </h3>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-3 line-clamp-2">
+                        ${resource.description}
+                    </p>
+
+                    <!-- Tags Bar -->
+                    <div class="flex flex-wrap gap-1 mb-3">
+                        ${tagsHTML}
+                    </div>
+                </div>
+
+                <!-- Footer details & Action button -->
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
+                    <span class="text-[11px] font-medium text-slate-400 flex items-center gap-1">
+                        <i class="fa-regular fa-clock"></i> ${resource.duration}
+                    </span>
+                    <button 
+                        onclick="openResourceModal(${resource.id})" 
+                        class="px-3 py-1.5 bg-slate-100 hover:bg-sky-600 hover:text-white text-slate-700 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5"
+                    >
+                        <span>Ver recurso</span>
+                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        function filterResources() {
+            const filtered = resourcesData.filter(item => {
+                const matchGrade = currentGrade === 'all' || item.grade === currentGrade;
+                const matchSubject = currentSubject === 'all' || item.subject === currentSubject;
+                
+                const itemTags = getResourceTags(item);
+                const matchTag = currentTag === 'all' || itemTags.includes(currentTag);
+
+                const query = searchQuery.toLowerCase().trim();
+                const matchSearch = query === '' || 
+                    item.title.toLowerCase().includes(query) || 
+                    item.description.toLowerCase().includes(query) ||
+                    item.subject.toLowerCase().includes(query) ||
+                    itemTags.some(t => t.toLowerCase().includes(query));
+
+                return matchGrade && matchSubject && matchTag && matchSearch;
+            });
+
+            resourcesGrid.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                resourcesGrid.classList.add('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                resourcesGrid.classList.remove('hidden');
+                filtered.forEach(item => {
+                    resourcesGrid.appendChild(createCardElement(item));
+                });
+            }
+
+            totalCountBadge.textContent = resourcesData.length;
+            visibleCountBadge.textContent = filtered.length;
+            showingCount.textContent = filtered.length;
+            totalGridCount.textContent = resourcesData.length;
+
+            renderTagFilters();
+            updateSummaryText();
+        }
+
+        function updateSummaryText() {
+            activeGradeLabel.textContent = currentGrade === 'all' ? 'Todos los Cursos' : currentGrade;
+            activeSubjectLabel.textContent = currentSubject === 'all' ? 'Todas las Áreas' : currentSubject;
+            if (activeTagLabel) {
+                activeTagLabel.textContent = currentTag === 'all' ? 'Todas las Etiquetas' : `Etiqueta: ${currentTag}`;
+            }
+
+            const parts = [];
+            if (currentGrade !== 'all') parts.push(`Curso: ${currentGrade}`);
+            if (currentSubject !== 'all') parts.push(`Asignatura: ${currentSubject}`);
+            if (currentTag !== 'all') parts.push(`Etiqueta: "${currentTag}"`);
+            if (searchQuery.trim() !== '') parts.push(`Búsqueda: "${searchQuery}"`);
+
+            if (parts.length === 0) {
+                activeFiltersSummary.textContent = 'Ninguno (Mostrando todos)';
+            } else {
+                activeFiltersSummary.textContent = parts.join(' | ');
+            }
+        }
+
+        // Grade Filter Buttons
+        document.querySelectorAll('.grade-filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetBtn = e.currentTarget;
+                currentGrade = targetBtn.getAttribute('data-grade');
+
+                document.querySelectorAll('.grade-filter-btn').forEach(b => {
+                    b.className = 'grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300';
+                });
+                targetBtn.className = 'grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-sky-600 text-white border-sky-600 shadow-sm hover:bg-sky-700';
+
+                filterResources();
+            });
+        });
+
+        // Subject Filter Buttons
+        document.querySelectorAll('.subject-filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetBtn = e.currentTarget;
+                currentSubject = targetBtn.getAttribute('data-subject');
+
+                document.querySelectorAll('.subject-filter-btn').forEach(b => {
+                    b.className = 'subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 flex items-center gap-1.5';
+                });
+                targetBtn.className = 'subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-indigo-600 text-white border-indigo-600 shadow-sm hover:bg-indigo-700 flex items-center gap-1.5';
+
+                filterResources();
+            });
+        });
+
+        // Search Input Handling
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            if (searchQuery.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+            }
+            filterResources();
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchQuery = '';
+            clearSearchBtn.classList.add('hidden');
+            filterResources();
+        });
+
+        document.getElementById('reset-filters-btn').addEventListener('click', resetFilters);
+
+        function resetFilters() {
+            currentGrade = 'all';
+            currentSubject = 'all';
+            currentTag = 'all';
+            searchQuery = '';
+            tagSearchQuery = '';
+            searchInput.value = '';
+            if (tagSearchInput) tagSearchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+            if (clearTagSearchBtn) clearTagSearchBtn.classList.add('hidden');
+
+            document.querySelectorAll('.grade-filter-btn').forEach((b) => {
+                if (b.getAttribute('data-grade') === 'all') {
+                    b.className = 'grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-sky-600 text-white border-sky-600 shadow-sm hover:bg-sky-700';
+                } else {
+                    b.className = 'grade-filter-btn px-4 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300';
+                }
+            });
+
+            document.querySelectorAll('.subject-filter-btn').forEach((b) => {
+                if (b.getAttribute('data-subject') === 'all') {
+                    b.className = 'subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-indigo-600 text-white border-indigo-600 shadow-sm hover:bg-indigo-700 flex items-center gap-1.5';
+                } else {
+                    b.className = 'subject-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 flex items-center gap-1.5';
+                }
+            });
+
+            filterResources();
+        }
+
+        function openResourceModal(id) {
+            const item = resourcesData.find(r => r.id === id);
+            if (!item) return;
+
+            const theme = subjectThemeMap[item.subject] || {
+                badgeBg: 'bg-slate-100',
+                text: 'text-slate-800',
+                iconBg: 'bg-slate-700'
+            };
+
+            modalIconBg.className = `w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-white shadow-md ${theme.iconBg}`;
+            modalIcon.className = `fa-solid ${item.icon}`;
+            modalSubjectBadge.textContent = item.subject;
+            modalSubjectBadge.className = `px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider ${theme.badgeBg} ${theme.text}`;
+            modalGradeBadge.textContent = item.grade;
+            modalTitle.textContent = item.title;
+            modalDescription.textContent = item.description;
+            modalFormat.textContent = item.format;
+            modalDuration.textContent = item.duration;
+
+            const tags = getResourceTags(item);
+            modalTag.innerHTML = tags.map(t => `
+                <span class="inline-block bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[11px] font-semibold">
+                    <i class="fa-solid fa-tag text-[9px] mr-1"></i>${t}
+                </span>
+            `).join('');
+
+            modalDownloadLink.href = item.link;
+
+            resourceModal.classList.remove('opacity-0', 'pointer-events-none');
+            resourceModal.children[0].classList.remove('scale-95');
+            resourceModal.children[0].classList.add('scale-100');
+        }
+
+        function closeModal() {
+            if (resourceModal && resourceModal.children[0]) {
+                resourceModal.children[0].classList.remove('scale-100');
+                resourceModal.children[0].classList.add('scale-95');
+                resourceModal.classList.add('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', closeModal);
+        }
+
+        resourceModal.addEventListener('click', (e) => {
+            if (e.target === resourceModal) {
+                closeModal();
+            }
+        });
+
+        function openAddModal() {
+            addResourceModal.classList.remove('opacity-0', 'pointer-events-none');
+            addResourceModal.children[0].classList.remove('scale-95');
+            addResourceModal.children[0].classList.add('scale-100');
+        }
+
+        function closeAddModal() {
+            addResourceModal.children[0].classList.remove('scale-100');
+            addResourceModal.children[0].classList.add('scale-95');
+            addResourceModal.classList.add('opacity-0', 'pointer-events-none');
+            addResourceForm.reset();
+        }
+
+        openAddModalBtn.addEventListener('click', openAddModal);
+        closeAddModalBtn.addEventListener('click', closeAddModal);
+        cancelAddModalBtn.addEventListener('click', closeAddModal);
+
+        addResourceModal.addEventListener('click', (e) => {
+            if (e.target === addResourceModal) closeAddModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                closeAddModal();
+            }
+        });
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMessage.textContent = message;
+            if (isError) {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-rose-400 text-base";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Add Resource Form Submit Handler
+        addResourceForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const rawTagInput = document.getElementById('add-tag').value.trim();
+            const parsedTags = rawTagInput 
+                ? rawTagInput.split(',').map(t => t.trim()).filter(Boolean)
+                : ['General'];
+
+            const newResource = {
+                id: Date.now(),
+                title: document.getElementById('add-title').value.trim(),
+                subject: document.getElementById('add-subject').value,
+                grade: document.getElementById('add-grade').value,
+                description: document.getElementById('add-description').value.trim(),
+                icon: document.getElementById('add-icon').value,
+                format: document.getElementById('add-format').value.trim() || 'Ficha PDF',
+                duration: document.getElementById('add-duration').value.trim() || '30 min',
+                tags: parsedTags,
+                link: document.getElementById('add-link').value.trim() || '#'
+            };
+
+            resourcesData.unshift(newResource);
+            saveResourcesToStorage();
+            filterResources();
+            closeAddModal();
+            showToast('¡Nuevo recurso añadido correctamente!');
+        });
+
+        // Export Backup JSON
+        document.getElementById('export-json-btn').addEventListener('click', () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(resourcesData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            const today = new Date().toISOString().split('T')[0];
+            
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `backup_recursos_primaria_${today}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+
+            showToast('Copia de seguridad descargada (JSON)');
+        });
+
+        // Import Backup JSON
+        document.getElementById('import-json-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const importedData = JSON.parse(event.target.result);
+
+                    if (!Array.isArray(importedData)) {
+                        throw new Error('El archivo JSON no tiene un formato de lista válido.');
+                    }
+
+                    const isValid = importedData.every(item => item.title && item.subject && item.grade);
+                    if (!isValid) {
+                        throw new Error('El archivo JSON no contiene la estructura de recursos esperada.');
+                    }
+
+                    resourcesData = importedData;
+                    saveResourcesToStorage();
+                    filterResources();
+                    showToast('Copia de seguridad cargada con éxito');
+                } catch (err) {
+                    showToast('Error al importar el archivo JSON', true);
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        });
+
+        // Initial render on load
+        window.onload = function() {
+            filterResources();
+        };
+    </script>
+</body>
+</html>
