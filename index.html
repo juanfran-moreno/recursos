@@ -94,6 +94,11 @@
                         <span class="text-slate-600">Visibles:</span>
                         <span id="visible-count-badge" class="font-bold text-indigo-600">0</span>
                     </div>
+                    <div class="flex items-center gap-2 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/60 text-xs">
+                        <i class="fa-solid fa-database text-amber-600"></i>
+                        <span class="text-slate-600">Origen:</span>
+                        <span id="data-source-badge" class="font-bold text-amber-700">Cargando...</span>
+                    </div>
                 </div>
 
                 <!-- Actions Bar: New Resource, Backup JSON & Load JSON -->
@@ -729,6 +734,7 @@
         const clearSearchBtn = document.getElementById('clear-search-btn');
         const totalCountBadge = document.getElementById('total-count-badge');
         const visibleCountBadge = document.getElementById('visible-count-badge');
+        const dataSourceBadge = document.getElementById('data-source-badge');
         const showingCount = document.getElementById('showing-count');
         const totalGridCount = document.getElementById('total-grid-count');
         const activeFiltersSummary = document.getElementById('active-filters-summary');
@@ -1180,6 +1186,51 @@
             }, 3000);
         }
 
+        function updateDataSourceBadge(sourceName) {
+            if (dataSourceBadge) {
+                dataSourceBadge.textContent = sourceName;
+            }
+        }
+
+        // Asynchronous initialization to attempt loading central data/recursos.json
+        async function loadInitialData() {
+            // 1. Try LocalStorage first if saved session exists
+            const localSaved = localStorage.getItem('aulaDigital_resources');
+            if (localSaved) {
+                try {
+                    resourcesData = JSON.parse(localSaved);
+                    updateDataSourceBadge('LocalStorage');
+                    filterResources();
+                    return;
+                } catch (e) {
+                    console.error("Error al leer de LocalStorage:", e);
+                }
+            }
+
+            // 2. Attempt fetching central data/recursos.json file dynamically
+            try {
+                const response = await fetch('data/recursos.json');
+                if (response.ok) {
+                    const fetchedData = await response.json();
+                    if (Array.isArray(fetchedData) && fetchedData.length > 0) {
+                        resourcesData = fetchedData;
+                        saveResourcesToStorage();
+                        updateDataSourceBadge('data/recursos.json');
+                        filterResources();
+                        showToast('Datos cargados desde data/recursos.json');
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.log("No se pudo cargar data/recursos.json (entorno local sin servidor web o archivo ausente). Usando datos predeterminados.");
+            }
+
+            // 3. Fallback to default embedded resources
+            resourcesData = [...defaultResourcesData];
+            updateDataSourceBadge('Datos Integrados');
+            filterResources();
+        }
+
         // Add Resource Form Submit Handler
         addResourceForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -1258,7 +1309,7 @@
 
         // Initial render on load
         window.onload = function() {
-            filterResources();
+            loadInitialData();
         };
     </script>
 </body>
