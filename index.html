@@ -35,6 +35,9 @@
 
     <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         body {
@@ -61,6 +64,10 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        .lucide {
+            display: inline-block;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-full text-slate-800 antialiased selection:bg-sky-500 selection:text-white">
@@ -83,10 +90,10 @@
                 </div>
 
                 <!-- Live Quick Stats -->
-                <div class="hidden md:flex items-center gap-6 text-sm">
+                <div class="hidden lg:flex items-center gap-4 text-sm">
                     <div class="flex items-center gap-2 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/60">
                         <i class="fa-solid fa-folder-open text-sky-600"></i>
-                        <span class="text-slate-600">Total Recursos:</span>
+                        <span class="text-slate-600">Total:</span>
                         <span id="total-count-badge" class="font-bold text-slate-900">0</span>
                     </div>
                     <div class="flex items-center gap-2 bg-slate-100/80 px-3 py-1.5 rounded-xl border border-slate-200/60">
@@ -101,17 +108,25 @@
                     </div>
                 </div>
 
-                <!-- Actions Bar: New Resource, Backup JSON & Load JSON -->
+                <!-- Actions Bar: Admin Mode Toggle, New Resource, Backup JSON -->
                 <div class="flex items-center gap-2">
-                    <button id="open-add-modal-btn" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 transition-all">
+                    
+                    <!-- Admin Toggle Button -->
+                    <button id="toggle-admin-btn" title="Activar/Desactivar modo administración" class="px-3 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all shadow-sm">
+                        <i id="admin-icon" class="fa-solid fa-lock text-amber-400"></i>
+                        <span id="admin-btn-text" class="hidden sm:inline">Modo Admin</span>
+                    </button>
+
+                    <!-- Admin Only Buttons -->
+                    <button id="open-add-modal-btn" class="admin-only hidden px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 transition-all">
                         <i class="fa-solid fa-plus text-xs"></i> <span>Nuevo Recurso</span>
                     </button>
                     
-                    <button id="export-json-btn" title="Descargar copia de seguridad en JSON" class="p-2 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all">
+                    <button id="export-json-btn" title="Descargar copia de seguridad en JSON" class="admin-only hidden p-2 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-all">
                         <i class="fa-solid fa-download text-sky-600"></i> <span class="hidden md:inline">Exportar JSON</span>
                     </button>
                     
-                    <label title="Cargar copia de seguridad desde JSON" class="p-2 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 cursor-pointer transition-all">
+                    <label title="Cargar copia de seguridad desde JSON" class="admin-only hidden p-2 sm:px-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-semibold items-center gap-1.5 cursor-pointer transition-all">
                         <i class="fa-solid fa-upload text-indigo-600"></i> <span class="hidden md:inline">Importar JSON</span>
                         <input type="file" id="import-json-input" accept=".json" class="hidden">
                     </label>
@@ -119,6 +134,17 @@
             </div>
         </div>
     </header>
+
+    <!-- Admin Banner Indicator -->
+    <div id="admin-mode-banner" class="hidden bg-amber-50 border-b border-amber-200 py-2 px-4 text-xs text-amber-900 font-medium flex items-center justify-between">
+        <div class="max-w-7xl mx-auto w-full flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-shield-halved text-amber-600"></i>
+                <span><strong>Modo Administración Activo:</strong> Puedes crear, editar y eliminar recursos. Recuerda <strong>Exportar el JSON</strong> y subirlo a GitHub para publicar los cambios.</span>
+            </div>
+            <button id="exit-admin-btn" class="text-amber-800 underline hover:text-amber-900 font-semibold text-xs shrink-0">Cerrar sesión admin</button>
+        </div>
+    </div>
 
     <!-- Hero Banner & Interactive Search -->
     <section class="bg-gradient-to-b from-sky-50/70 via-indigo-50/30 to-slate-50 py-8 md:py-10 border-b border-slate-200/50">
@@ -131,7 +157,7 @@
                     Encuentra actividades y materiales para tu aula
                 </h2>
                 <p class="mt-2 text-sm sm:text-base text-slate-600">
-                    Filtra fácilmente contenidos adaptados por curso y área de conocimiento para proyectar o imprimir.
+                    Filtra fácilmente contenidos adaptados por curso y área de conocimiento para proyectar o abrir en directo.
                 </p>
             </div>
 
@@ -243,7 +269,6 @@
                         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
                             <i class="fa-solid fa-tags text-amber-500"></i> Etiquetas / Temas Clave:
                         </h3>
-                        <!-- Button to show/hide tags section -->
                         <button id="toggle-tags-btn" class="text-xs text-amber-600 hover:text-amber-800 font-semibold px-2 py-0.5 rounded-md bg-amber-50 hover:bg-amber-100 transition-colors flex items-center gap-1" title="Mostrar u ocultar sección de etiquetas">
                             <i id="toggle-tags-icon" class="fa-solid fa-eye-slash text-[10px]"></i>
                             <span id="toggle-tags-text">Ocultar</span>
@@ -252,9 +277,7 @@
                     <span id="active-tag-label" class="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">Todas las Etiquetas</span>
                 </div>
                 
-                <!-- Tag Filter Section Content (Collapsible) -->
                 <div id="tags-section-content" class="space-y-2.5">
-                    <!-- Dedicated Tag Search Bar -->
                     <div class="relative flex items-center max-w-xs">
                         <i class="fa-solid fa-magnifying-glass absolute left-2.5 text-slate-400 text-xs"></i>
                         <input 
@@ -333,7 +356,7 @@
 
             <div class="flex items-center gap-3 mb-4">
                 <div id="modal-icon-bg" class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-white shadow-md">
-                    <i id="modal-icon" class="fa-solid fa-book"></i>
+                    <span id="modal-icon-container"></span>
                 </div>
                 <div>
                     <span id="modal-subject-badge" class="px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider">Matemáticas</span>
@@ -369,15 +392,16 @@
                     id="modal-download-link" 
                     href="#" 
                     target="_blank" 
+                    rel="noopener noreferrer"
                     class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-3 px-4 rounded-xl text-center text-sm shadow-md shadow-sky-600/20 transition-colors flex items-center justify-center gap-2"
                 >
-                    <i class="fa-solid fa-arrow-down-to-line"></i> Abrir / Descargar Recurso
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir Recurso en Nueva Pestaña
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Modal for Adding a New Educational Resource -->
+    <!-- Modal for Adding / Editing Educational Resource -->
     <div id="add-resource-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 p-4">
         <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl transform scale-95 transition-transform duration-300 border border-slate-100 relative max-h-[90vh] overflow-y-auto">
             
@@ -387,15 +411,17 @@
 
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
-                    <i class="fa-solid fa-plus text-lg"></i>
+                    <i id="form-modal-icon" class="fa-solid fa-plus text-lg"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-bold text-slate-900">Añadir Nuevo Recurso</h3>
-                    <p class="text-xs text-slate-500">Introduce los datos del contenido para incorporarlo al catálogo</p>
+                    <h3 id="form-modal-title" class="text-lg font-bold text-slate-900">Añadir Nuevo Recurso</h3>
+                    <p class="text-xs text-slate-500">Soporta iconos FontAwesome y Lucide</p>
                 </div>
             </div>
 
             <form id="add-resource-form" class="space-y-4">
+                <input type="hidden" id="editing-resource-id" value="">
+
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Título del Recurso *</label>
                     <input type="text" id="add-title" required placeholder="Ej: Ejercicios de Fracciones Equivalentes" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
@@ -429,36 +455,46 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Icono Representativo *</label>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Icono Representativo (FontAwesome / Lucide) *</label>
                         <select id="add-icon" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                            <option value="fa-calculator">🧮 Calculadora (Matemáticas)</option>
-                            <option value="fa-pen-nib">✒️ Pluma / Escritura (Lengua)</option>
-                            <option value="fa-language">🗣️ Idioma / Speech (Inglés)</option>
-                            <option value="fa-leaf">🍃 Hoja / Biología (Naturales)</option>
-                            <option value="fa-earth-americas">🌎 Globo / Geografía (Sociales)</option>
-                            <option value="fa-heart">❤️ Corazón / Emociones (Tutoría)</option>
-                            <option value="fa-flask">🧪 Frasco / Experimentos</option>
-                            <option value="fa-brain">🧠 Cerebro / Razonamiento</option>
-                            <option value="fa-palette">🎨 Paleta / Arte y Dibujo</option>
-                            <option value="fa-music">🎵 Nota Musical / Audios</option>
-                            <option value="fa-film">🎬 Vídeo / Película</option>
-                            <option value="fa-laptop-code">💻 Ordenador / TIC</option>
-                            <option value="fa-puzzle-piece">🧩 Pieza de Puzle / Juegos</option>
-                            <option value="fa-shapes">📐 Formas Geométricas</option>
-                            <option value="fa-lightbulb">💡 Bombilla / Ideas Creativas</option>
-                            <option value="fa-graduation-cap">🎓 Birrete / Evaluación</option>
-                            <option value="fa-comments">💬 Bocadillos / Expresión Oral</option>
-                            <option value="fa-book-open">📖 Libro Abierto / Lectura</option>
-                            <option value="fa-star">⭐ Estrella / Destacado</option>
-                            <option value="fa-compass">🧭 Brújula / Historia</option>
-                            <option value="fa-users">👥 Grupo / Trabajo en equipo</option>
-                            <option value="fa-gamepad">🎮 Mando / Gamificación</option>
+                            <!-- Lucide Icons -->
+                            <optgroup label="Iconos Lucide (Nuevos)">
+                                <option value="lucide:book-open">📖 Lucide: book-open (Lectura)</option>
+                                <option value="lucide:calculator">🧮 Lucide: calculator (Matemáticas)</option>
+                                <option value="lucide:shapes">📐 Lucide: shapes (Geometría)</option>
+                                <option value="lucide:file-text">📄 Lucide: file-text (Fichas)</option>
+                                <option value="lucide:video">🎬 Lucide: video (Vídeos/Interactivos)</option>
+                                <option value="lucide:music">🎵 Lucide: music (Audio/Música)</option>
+                                <option value="lucide:flask-conical">🧪 Lucide: flask-conical (Ciencias)</option>
+                                <option value="lucide:globe">🌎 Lucide: globe (Sociales/Geografía)</option>
+                                <option value="lucide:heart">❤️ Lucide: heart (Tutoría/Emociones)</option>
+                                <option value="lucide:brain">🧠 Lucide: brain (Razonamiento)</option>
+                                <option value="lucide:sparkles">✨ Lucide: sparkles (Destacado)</option>
+                                <option value="lucide:award">🏆 Lucide: award (Retos/Premios)</option>
+                                <option value="lucide:puzzle">🧩 Lucide: puzzle (Juegos)</option>
+                                <option value="lucide:pen-tool">✒️ Lucide: pen-tool (Escritura)</option>
+                                <option value="lucide:target">🎯 Lucide: target (Objetivos)</option>
+                                <option value="lucide:smile">😊 Lucide: smile (Convivencia)</option>
+                            </optgroup>
+                            <!-- FontAwesome Icons -->
+                            <optgroup label="Iconos FontAwesome">
+                                <option value="fa-calculator">🧮 FA: Calculadora</option>
+                                <option value="fa-pen-nib">✒️ FA: Pluma / Escritura</option>
+                                <option value="fa-language">🗣️ FA: Idioma / Inglés</option>
+                                <option value="fa-leaf">🍃 FA: Hoja / Biología</option>
+                                <option value="fa-earth-americas">🌎 FA: Globo / Geografía</option>
+                                <option value="fa-heart">❤️ FA: Corazón / Tutoría</option>
+                                <option value="fa-flask">🧪 FA: Frasco / Experimentos</option>
+                                <option value="fa-brain">🧠 FA: Cerebro</option>
+                                <option value="fa-users">👥 FA: Trabajo en Equipo</option>
+                                <option value="fa-gamepad">🎮 FA: Gamificación</option>
+                            </optgroup>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">Formato del Recurso</label>
-                        <input type="text" id="add-format" placeholder="Ej: Ficha PDF / PPT / Audio MP3" value="Ficha PDF / Imprimible" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <input type="text" id="add-format" placeholder="Ej: Ficha PDF / PPT / Web" value="Ficha PDF / Imprimible" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     </div>
                 </div>
 
@@ -480,16 +516,49 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Enlace / URL de Descarga</label>
-                    <input type="url" id="add-link" placeholder="https://..." value="https://ejemplo.com/recurso.pdf" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Enlace / URL de la Web o Archivo *</label>
+                    <input type="url" id="add-link" required placeholder="https://..." value="https://ejemplo.com/recurso" class="w-full px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                 </div>
 
                 <div class="pt-3 flex items-center gap-3">
                     <button type="button" id="cancel-add-modal-btn" class="flex-1 py-2.5 px-4 rounded-xl border border-slate-300 text-slate-700 font-semibold text-xs sm:text-sm hover:bg-slate-100 transition-colors">
                         Cancelar
                     </button>
-                    <button type="submit" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition-colors">
+                    <button type="submit" id="save-resource-btn" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-emerald-600/20 transition-colors">
                         Guardar Recurso
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Password Verification Modal -->
+    <div id="admin-pass-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl transform scale-95 transition-transform duration-300 border border-slate-100 relative text-center">
+            
+            <div class="w-12 h-12 bg-slate-900 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-3 text-xl shadow-md">
+                <i class="fa-solid fa-key"></i>
+            </div>
+
+            <h3 class="text-base font-bold text-slate-900 mb-1">Acceso de Administración</h3>
+            <p class="text-xs text-slate-500 mb-4">Introduce la clave interna para activar la edición</p>
+
+            <form id="admin-pass-form" class="space-y-3">
+                <input 
+                    type="password" 
+                    id="admin-pass-input" 
+                    placeholder="Contraseña..." 
+                    class="w-full px-3.5 py-2 text-center text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-800"
+                    required
+                >
+                <div class="text-[11px] text-slate-400">Clave por defecto: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-600 font-mono">admin123</code></div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    <button type="button" id="close-admin-pass-btn" class="flex-1 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-100">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-semibold">
+                        Entrar
                     </button>
                 </div>
             </form>
@@ -521,7 +590,7 @@
                 subject: "Matemáticas",
                 grade: "3º Primaria",
                 description: "Colección de juegos imprimibles y fichas rápidas para automatizar la memorización y comprensión de las tablas de multiplicar.",
-                icon: "fa-calculator",
+                icon: "lucide:calculator",
                 format: "Ficha PDF / Imprimible",
                 duration: "20 min",
                 tags: ["Cálculo Mental", "Tablas", "Juegos"],
@@ -533,7 +602,7 @@
                 subject: "Inglés",
                 grade: "4º Primaria",
                 description: "Short story with reading comprehension questions, present simple vocabulary, and daily activities worksheets.",
-                icon: "fa-language",
+                icon: "lucide:book-open",
                 format: "PDF + Audio MP3",
                 duration: "30 min",
                 tags: ["Lectura", "Vocabulario", "Gramática"],
@@ -557,7 +626,7 @@
                 subject: "Ciencias Naturales",
                 grade: "5º Primaria",
                 description: "Presentación interactiva y esquema conceptual sobre el aparato digestivo, respiratorio, circulatorio y excretor.",
-                icon: "fa-flask",
+                icon: "lucide:flask-conical",
                 format: "Diapositivas / PPT",
                 duration: "45 min",
                 tags: ["Anatomía", "Experimentos", "Esquema"],
@@ -569,7 +638,7 @@
                 subject: "Ciencias Sociales",
                 grade: "4º Primaria",
                 description: "Ficha mudo de relieve, ríos y comunidades autónomas de España para completar en clase o en casa.",
-                icon: "fa-earth-americas",
+                icon: "lucide:globe",
                 format: "Mapa Interactivo",
                 duration: "35 min",
                 tags: ["Geografía", "Mapas", "TIC"],
@@ -581,7 +650,7 @@
                 subject: "Tutoría",
                 grade: "1º Primaria",
                 description: "Dinámica grupal para la identificación de emociones (alegría, enfado, miedo) y técnicas sencillas de respiración consciente.",
-                icon: "fa-heart",
+                icon: "lucide:heart",
                 format: "Guía Didáctica Docente",
                 duration: "40 min",
                 tags: ["Emociones", "Convivencia", "Dinámicas"],
@@ -593,7 +662,7 @@
                 subject: "Matemáticas",
                 grade: "6º Primaria",
                 description: "Problemas prácticos contextualizados en compras de supermercado y recetas de cocina para entender equivalencias.",
-                icon: "fa-brain",
+                icon: "lucide:brain",
                 format: "Taller Práctico",
                 duration: "50 min",
                 tags: ["Problemas", "Cálculo Mental", "Refuerzo"],
@@ -605,78 +674,26 @@
                 subject: "Inglés",
                 grade: "5º Primaria",
                 description: "Interactive cards and group speaking prompts to practice differences between routines and actions happening now.",
-                icon: "fa-comments",
+                icon: "lucide:target",
                 format: "Juego de Tarjetas",
                 duration: "30 min",
                 tags: ["Gramática", "Oral", "Juegos"],
                 link: "https://ejemplo.com/recursos/english-grammar.pdf"
-            },
-            {
-                id: 9,
-                title: "Análisis Sintáctico Fácil: Sujeto y Predicado",
-                subject: "Lengua Castellana",
-                grade: "6º Primaria",
-                description: "Guía paso a paso para identificar el núcleo del sujeto, predicado verbal/nominal y complementos básicos en oraciones simples.",
-                icon: "fa-pen-nib",
-                format: "Esquema + Ejercicios",
-                duration: "40 min",
-                tags: ["Sintaxis", "Gramática", "Examen"],
-                link: "https://ejemplo.com/recursos/sintaxis.pdf"
-            },
-            {
-                id: 10,
-                title: "Ecosistemas y Cadenas Tróficas",
-                subject: "Ciencias Naturales",
-                grade: "3º Primaria",
-                description: "Actividad recortable para construir pirámides alimenticias de productores, consumidores y descomponedores.",
-                icon: "fa-leaf",
-                format: "Ficha Recortable",
-                duration: "30 min",
-                tags: ["Ecología", "Manualidades", "Esquema"],
-                link: "https://ejemplo.com/recursos/ecosistemas.pdf"
-            },
-            {
-                id: 11,
-                title: "Resolución de Conflictos: El Semáforo del Aula",
-                subject: "Tutoría",
-                grade: "4º Primaria",
-                description: "Protocolo visual para fomentar el diálogo asertivo y la empatía entre compañeros durante el recreo y el trabajo en equipo.",
-                icon: "fa-users",
-                format: "Póster del Aula",
-                duration: "15 min",
-                tags: ["Convivencia", "Emociones", "Valores"],
-                link: "https://ejemplo.com/recursos/semaforo-conflicto.pdf"
-            },
-            {
-                id: 12,
-                title: "La Prehistoria y las Primeras Civilizaciones",
-                subject: "Ciencias Sociales",
-                grade: "5º Primaria",
-                description: "Línea del tiempo gráfica ilustrada con el Paleolítico, Neolítico y Edad de los Metales.",
-                icon: "fa-compass",
-                format: "Infografía Ilustrada",
-                duration: "45 min",
-                tags: ["Historia", "Esquema", "Línea del tiempo"],
-                link: "https://ejemplo.com/recursos/prehistoria.pdf"
             }
         ];
 
-        // Load active resources from LocalStorage if available
-        let resourcesData = JSON.parse(localStorage.getItem('aulaDigital_resources')) || [...defaultResourcesData];
-
-        function saveResourcesToStorage() {
-            localStorage.setItem('aulaDigital_resources', JSON.stringify(resourcesData));
-        }
-
         // State variables
+        let resourcesData = [];
         let currentGrade = 'all';
         let currentSubject = 'all';
         let currentTag = 'all';
         let searchQuery = '';
         let tagSearchQuery = '';
         let isTagsVisible = true;
+        let isAdminMode = false;
+        const ADMIN_PASS = 'admin123';
 
-        // Color theme mapping for Subjects
+        // Theme map for Subjects
         const subjectThemeMap = {
             'Matemáticas': {
                 bg: 'bg-blue-50',
@@ -728,6 +745,7 @@
             }
         };
 
+        // DOM element references
         const resourcesGrid = document.getElementById('resources-grid');
         const emptyState = document.getElementById('empty-state');
         const searchInput = document.getElementById('search-input');
@@ -746,11 +764,11 @@
         const resourceModal = document.getElementById('resource-modal');
         const closeModalBtn = document.getElementById('close-modal-btn');
         const modalIconBg = document.getElementById('modal-icon-bg');
-        const modalIcon = document.getElementById('modal-icon');
+        const modalIconContainer = document.getElementById('modal-icon-container');
         const modalSubjectBadge = document.getElementById('modal-subject-badge');
         const modalGradeBadge = document.getElementById('modal-grade-badge');
         const modalTitle = document.getElementById('modal-title');
-        modalDescription = document.getElementById('modal-description');
+        const modalDescription = document.getElementById('modal-description');
         const modalFormat = document.getElementById('modal-format');
         const modalDuration = document.getElementById('modal-duration');
         const modalTag = document.getElementById('modal-tag');
@@ -763,6 +781,17 @@
         const cancelAddModalBtn = document.getElementById('cancel-add-modal-btn');
         const addResourceForm = document.getElementById('add-resource-form');
 
+        // Admin DOM elements
+        const toggleAdminBtn = document.getElementById('toggle-admin-btn');
+        const adminIcon = document.getElementById('admin-icon');
+        const adminBtnText = document.getElementById('admin-btn-text');
+        const adminModeBanner = document.getElementById('admin-mode-banner');
+        const exitAdminBtn = document.getElementById('exit-admin-btn');
+        const adminPassModal = document.getElementById('admin-pass-modal');
+        const adminPassForm = document.getElementById('admin-pass-form');
+        const adminPassInput = document.getElementById('admin-pass-input');
+        const closeAdminPassBtn = document.getElementById('close-admin-pass-btn');
+
         // Tag Search and Visibility Controls
         const tagSearchInput = document.getElementById('tag-search-input');
         const clearTagSearchBtn = document.getElementById('clear-tag-search-btn');
@@ -770,6 +799,20 @@
         const toggleTagsBtn = document.getElementById('toggle-tags-btn');
         const toggleTagsIcon = document.getElementById('toggle-tags-icon');
         const toggleTagsText = document.getElementById('toggle-tags-text');
+
+        // Helper function to render Lucide or FontAwesome icon HTML
+        function getIconHTML(iconStr, extraClass = '') {
+            if (!iconStr) return `<i class="fa-solid fa-book ${extraClass}"></i>`;
+            if (iconStr.startsWith('lucide:')) {
+                const lucideName = iconStr.replace('lucide:', '');
+                return `<i data-lucide="${lucideName}" class="${extraClass}"></i>`;
+            }
+            return `<i class="fa-solid ${iconStr} ${extraClass}"></i>`;
+        }
+
+        function saveResourcesToStorage() {
+            localStorage.setItem('aulaDigital_resources', JSON.stringify(resourcesData));
+        }
 
         function getResourceTags(resource) {
             if (Array.isArray(resource.tags) && resource.tags.length > 0) {
@@ -780,6 +823,73 @@
             }
             return ['General'];
         }
+
+        function setAdminMode(active) {
+            isAdminMode = active;
+            const adminOnlyElems = document.querySelectorAll('.admin-only');
+
+            if (isAdminMode) {
+                adminOnlyElems.forEach(el => {
+                    if (el.tagName === 'LABEL') {
+                        el.style.display = 'inline-flex';
+                    } else {
+                        el.classList.remove('hidden');
+                    }
+                });
+                adminModeBanner.classList.remove('hidden');
+                adminIcon.className = 'fa-solid fa-lock-open text-emerald-400';
+                adminBtnText.textContent = 'Admin (Activo)';
+                showToast('Modo Administración activado');
+            } else {
+                adminOnlyElems.forEach(el => {
+                    if (el.tagName === 'LABEL') {
+                        el.style.display = 'none';
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                });
+                adminModeBanner.classList.add('hidden');
+                adminIcon.className = 'fa-solid fa-lock text-amber-400';
+                adminBtnText.textContent = 'Modo Admin';
+            }
+            filterResources();
+        }
+
+        toggleAdminBtn.addEventListener('click', () => {
+            if (isAdminMode) {
+                setAdminMode(false);
+            } else {
+                openAdminPassModal();
+            }
+        });
+
+        exitAdminBtn.addEventListener('click', () => setAdminMode(false));
+
+        function openAdminPassModal() {
+            adminPassInput.value = '';
+            adminPassModal.classList.remove('opacity-0', 'pointer-events-none');
+            adminPassModal.children[0].classList.remove('scale-95');
+            adminPassModal.children[0].classList.add('scale-100');
+            setTimeout(() => adminPassInput.focus(), 100);
+        }
+
+        function closeAdminPassModal() {
+            adminPassModal.children[0].classList.remove('scale-100');
+            adminPassModal.children[0].classList.add('scale-95');
+            adminPassModal.classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        closeAdminPassBtn.addEventListener('click', closeAdminPassModal);
+
+        adminPassForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (adminPassInput.value === ADMIN_PASS) {
+                closeAdminPassModal();
+                setAdminMode(true);
+            } else {
+                showToast('Contraseña incorrecta', true);
+            }
+        });
 
         function renderTagFilters() {
             const container = document.getElementById('tags-buttons-container');
@@ -796,7 +906,6 @@
                 });
             });
 
-            // Filter tags using the dedicated tag search query
             const q = tagSearchQuery.toLowerCase().trim();
             const sortedTags = Object.keys(tagsCountMap)
                 .filter(tag => q === '' || tag.toLowerCase().includes(q))
@@ -812,7 +921,7 @@
             `;
 
             if (sortedTags.length === 0 && q !== '') {
-                html += `<span class="text-xs text-slate-400 italic py-1">No se encontraron etiquetas que coincidan</span>`;
+                html += `<span class="text-xs text-slate-400 italic py-1">No se encontraron etiquetas</span>`;
             } else {
                 sortedTags.forEach(tag => {
                     const count = tagsCountMap[tag];
@@ -898,13 +1007,24 @@
             const card = document.createElement('div');
             card.className = `card-transition bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md ${theme.hoverBorder}`;
             
+            const adminControls = isAdminMode ? `
+                <div class="flex items-center gap-1">
+                    <button onclick="editResource(${resource.id})" title="Editar recurso" class="p-1.5 text-slate-400 hover:text-sky-600 rounded-lg hover:bg-slate-100 transition-colors text-xs">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button onclick="deleteResource(${resource.id})" title="Eliminar recurso" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors text-xs">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            ` : '';
+
             card.innerHTML = `
                 <div>
                     <!-- Top Info Header -->
                     <div class="flex items-center justify-between mb-3">
                         <div class="flex items-center gap-2.5">
                             <div class="w-10 h-10 rounded-xl ${theme.iconBg} flex items-center justify-center text-white shadow-sm">
-                                <i class="fa-solid ${resource.icon} text-lg"></i>
+                                ${getIconHTML(resource.icon, 'text-lg')}
                             </div>
                             <div>
                                 <span class="inline-block px-2.5 py-0.5 rounded-md text-[11px] font-bold ${theme.badgeBg} ${theme.text}">
@@ -912,9 +1032,12 @@
                                 </span>
                             </div>
                         </div>
-                        <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200/60">
-                            ${resource.grade}
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200/60">
+                                ${resource.grade}
+                            </span>
+                            ${adminControls}
+                        </div>
                     </div>
 
                     <!-- Title & Description -->
@@ -931,18 +1054,31 @@
                     </div>
                 </div>
 
-                <!-- Footer details & Action button -->
+                <!-- Footer details & Action buttons -->
                 <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 mt-2">
                     <span class="text-[11px] font-medium text-slate-400 flex items-center gap-1">
                         <i class="fa-regular fa-clock"></i> ${resource.duration}
                     </span>
-                    <button 
-                        onclick="openResourceModal(${resource.id})" 
-                        class="px-3 py-1.5 bg-slate-100 hover:bg-sky-600 hover:text-white text-slate-700 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5"
-                    >
-                        <span>Ver recurso</span>
-                        <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                    </button>
+                    <div class="flex items-center gap-1.5">
+                        <button 
+                            onclick="openResourceModal(${resource.id})" 
+                            class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-all flex items-center gap-1"
+                            title="Ver detalles"
+                        >
+                            <span>Detalle</span>
+                        </button>
+                        <a 
+                            href="${resource.link}" 
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onclick="event.stopPropagation()"
+                            class="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-xl transition-all flex items-center gap-1 shadow-sm shadow-sky-600/20"
+                            title="Abrir sitio web directamente"
+                        >
+                            <span>Abrir web</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </a>
+                    </div>
                 </div>
             `;
             return card;
@@ -977,6 +1113,11 @@
                 filtered.forEach(item => {
                     resourcesGrid.appendChild(createCardElement(item));
                 });
+            }
+
+            // Re-initialize Lucide Icons after rendering
+            if (window.lucide) {
+                lucide.createIcons();
             }
 
             totalCountBadge.textContent = resourcesData.length;
@@ -1099,7 +1240,8 @@
             };
 
             modalIconBg.className = `w-12 h-12 rounded-2xl flex items-center justify-center text-xl text-white shadow-md ${theme.iconBg}`;
-            modalIcon.className = `fa-solid ${item.icon}`;
+            modalIconContainer.innerHTML = getIconHTML(item.icon, 'text-xl');
+            
             modalSubjectBadge.textContent = item.subject;
             modalSubjectBadge.className = `px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider ${theme.badgeBg} ${theme.text}`;
             modalGradeBadge.textContent = item.grade;
@@ -1120,6 +1262,8 @@
             resourceModal.classList.remove('opacity-0', 'pointer-events-none');
             resourceModal.children[0].classList.remove('scale-95');
             resourceModal.children[0].classList.add('scale-100');
+
+            if (window.lucide) lucide.createIcons();
         }
 
         function closeModal() {
@@ -1130,17 +1274,41 @@
             }
         }
 
-        if (closeModalBtn) {
-            closeModalBtn.addEventListener('click', closeModal);
-        }
+        if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
 
         resourceModal.addEventListener('click', (e) => {
-            if (e.target === resourceModal) {
-                closeModal();
-            }
+            if (e.target === resourceModal) closeModal();
         });
 
-        function openAddModal() {
+        function openAddModal(editingId = null) {
+            const titleElem = document.getElementById('form-modal-title');
+            const iconElem = document.getElementById('form-modal-icon');
+            const hiddenIdInput = document.getElementById('editing-resource-id');
+
+            if (editingId) {
+                const item = resourcesData.find(r => r.id === editingId);
+                if (!item) return;
+
+                hiddenIdInput.value = item.id;
+                titleElem.textContent = 'Editar Recurso';
+                iconElem.className = 'fa-solid fa-pen text-lg';
+
+                document.getElementById('add-title').value = item.title;
+                document.getElementById('add-subject').value = item.subject;
+                document.getElementById('add-grade').value = item.grade;
+                document.getElementById('add-icon').value = item.icon;
+                document.getElementById('add-format').value = item.format;
+                document.getElementById('add-duration').value = item.duration;
+                document.getElementById('add-tag').value = getResourceTags(item).join(', ');
+                document.getElementById('add-description').value = item.description;
+                document.getElementById('add-link').value = item.link;
+            } else {
+                hiddenIdInput.value = '';
+                titleElem.textContent = 'Añadir Nuevo Recurso';
+                iconElem.className = 'fa-solid fa-plus text-lg';
+                addResourceForm.reset();
+            }
+
             addResourceModal.classList.remove('opacity-0', 'pointer-events-none');
             addResourceModal.children[0].classList.remove('scale-95');
             addResourceModal.children[0].classList.add('scale-100');
@@ -1153,7 +1321,7 @@
             addResourceForm.reset();
         }
 
-        openAddModalBtn.addEventListener('click', openAddModal);
+        openAddModalBtn.addEventListener('click', () => openAddModal());
         closeAddModalBtn.addEventListener('click', closeAddModal);
         cancelAddModalBtn.addEventListener('click', closeAddModal);
 
@@ -1161,10 +1329,27 @@
             if (e.target === addResourceModal) closeAddModal();
         });
 
+        function editResource(id) {
+            openAddModal(id);
+        }
+
+        function deleteResource(id) {
+            const item = resourcesData.find(r => r.id === id);
+            if (!item) return;
+
+            if (confirm(`¿Estás seguro de que deseas eliminar el recurso "${item.title}"?`)) {
+                resourcesData = resourcesData.filter(r => r.id !== id);
+                saveResourcesToStorage();
+                filterResources();
+                showToast('Recurso eliminado');
+            }
+        }
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeModal();
                 closeAddModal();
+                closeAdminPassModal();
             }
         });
 
@@ -1192,9 +1377,7 @@
             }
         }
 
-        // Asynchronous initialization to attempt loading central data/recursos.json
         async function loadInitialData() {
-            // 1. Try LocalStorage first if saved session exists
             const localSaved = localStorage.getItem('aulaDigital_resources');
             if (localSaved) {
                 try {
@@ -1207,7 +1390,6 @@
                 }
             }
 
-            // 2. Attempt fetching central data/recursos.json file dynamically
             try {
                 const response = await fetch('data/recursos.json');
                 if (response.ok) {
@@ -1222,16 +1404,14 @@
                     }
                 }
             } catch (err) {
-                console.log("No se pudo cargar data/recursos.json (entorno local sin servidor web o archivo ausente). Usando datos predeterminados.");
+                console.log("Cargando datos predeterminados.");
             }
 
-            // 3. Fallback to default embedded resources
             resourcesData = [...defaultResourcesData];
             updateDataSourceBadge('Datos Integrados');
             filterResources();
         }
 
-        // Add Resource Form Submit Handler
         addResourceForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
@@ -1240,8 +1420,10 @@
                 ? rawTagInput.split(',').map(t => t.trim()).filter(Boolean)
                 : ['General'];
 
-            const newResource = {
-                id: Date.now(),
+            const editingId = document.getElementById('editing-resource-id').value;
+
+            const resourcePayload = {
+                id: editingId ? parseInt(editingId) : Date.now(),
                 title: document.getElementById('add-title').value.trim(),
                 subject: document.getElementById('add-subject').value,
                 grade: document.getElementById('add-grade').value,
@@ -1253,11 +1435,20 @@
                 link: document.getElementById('add-link').value.trim() || '#'
             };
 
-            resourcesData.unshift(newResource);
+            if (editingId) {
+                const index = resourcesData.findIndex(r => r.id === parseInt(editingId));
+                if (index !== -1) {
+                    resourcesData[index] = resourcePayload;
+                    showToast('Recurso actualizado correctamente');
+                }
+            } else {
+                resourcesData.unshift(resourcePayload);
+                showToast('¡Nuevo recurso añadido correctamente!');
+            }
+
             saveResourcesToStorage();
             filterResources();
             closeAddModal();
-            showToast('¡Nuevo recurso añadido correctamente!');
         });
 
         // Export Backup JSON
@@ -1267,12 +1458,12 @@
             const today = new Date().toISOString().split('T')[0];
             
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `backup_recursos_primaria_${today}.json`);
+            downloadAnchor.setAttribute("download", `recursos.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
 
-            showToast('Copia de seguridad descargada (JSON)');
+            showToast('Archivo recursos.json descargado');
         });
 
         // Import Backup JSON
@@ -1307,9 +1498,9 @@
             e.target.value = '';
         });
 
-        // Initial render on load
         window.onload = function() {
             loadInitialData();
+            if (window.lucide) lucide.createIcons();
         };
     </script>
 </body>
