@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cálculo Mental: Retos Progresivos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-active {
+            border-bottom-color: #3b82f6; /* blue-500 */
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        .tab-inactive {
+            border-bottom-color: transparent;
+            color: #6b7280; /* gray-500 */
+        }
+        
+        /* Estilos de respaldo por si imprimen la pantalla principal accidentalmente */
+        @media print {
+            #app-container, #print-modal, .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    
+    <!-- MAIN APP CONTAINER -->
+    <div id="app-container" class="w-full max-w-4xl mx-auto p-4 md:p-8">
+        <div class="bg-white rounded-2xl shadow-lg">
+            <!-- Header -->
+            <header class="text-center p-6 bg-blue-600 rounded-t-2xl text-white relative">
+                <h1 class="text-3xl md:text-4xl font-bold">Cálculo Mental: Retos Progresivos</h1>
+                
+                <div class="mt-6 max-w-md mx-auto">
+                    <label for="level-selector" class="sr-only">Selecciona un nivel</label>
+                    <select id="level-selector" class="w-full p-2 text-base text-gray-800 bg-white rounded-md shadow-inner focus:ring-2 focus:ring-blue-300 focus:outline-none">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <p id="level-description" class="mt-3 text-blue-100 text-sm font-semibold"></p>
+
+                <!-- Botón Generar Ficha -->
+                <div class="mt-6 flex justify-center">
+                    <button id="open-print-modal-btn" class="bg-white text-blue-700 font-bold py-2 px-6 rounded-full shadow-md hover:bg-blue-50 transition-transform transform hover:scale-105 flex items-center gap-2 text-sm md:text-base border-2 border-transparent hover:border-blue-300">
+                        🖨️ Generar Ficha para Imprimir
+                    </button>
+                </div>
+            </header>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200">
+                <button id="tab-practico" class="flex-1 py-4 px-2 text-center text-lg border-b-4 transition-colors duration-300">
+                    💡 Practico
+                </button>
+                <button id="tab-reto" class="flex-1 py-4 px-2 text-center text-lg border-b-4 transition-colors duration-300">
+                    🚀 Reto
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div id="content-practico" class="p-6 md:p-8 min-h-[300px]">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+
+            <div id="content-reto" class="p-6 md:p-8 hidden min-h-[300px]">
+                <div class="text-center">
+                    <p id="progress-text" class="text-lg font-semibold text-gray-500 mb-4">Problema 1 / 20</p>
+                    <div id="problem-container" class="bg-gray-100 p-8 rounded-lg mb-6">
+                        <p class="text-5xl md:text-6xl font-bold text-gray-800 tracking-wider">39 + 57</p>
+                    </div>
+                    <div id="answer-container" class="h-16 flex items-center justify-center">
+                        <p id="answer-text" class="text-5xl font-bold text-green-600 opacity-0 transition-opacity duration-500"></p>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-4 justify-center mt-6">
+                        <button id="show-answer-btn" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg transition-transform transform hover:scale-105">
+                            Ver Respuesta
+                        </button>
+                        <button id="next-problem-btn" class="w-full md:w-auto bg-gray-700 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-lg text-lg transition-transform transform hover:scale-105">
+                            Siguiente
+                        </button>
+                    </div>
+                     <div class="mt-8 flex flex-col md:flex-row gap-4 justify-center">
+                        <button id="new-challenge-btn" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition-transform transform hover:scale-105">
+                            🔄 Nuevo Reto
+                        </button>
+                        <button id="pro-challenge-btn" class="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-lg transition-transform transform hover:scale-105">
+                            🏆 Reto PRO
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL IMPRESIÓN -->
+    <div id="print-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div class="p-6 border-b border-gray-200 bg-gray-50 rounded-t-2xl">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    🖨️ Generar Fichas y Soluciones
+                </h2>
+                <p class="text-gray-600 mt-2 text-sm">Selecciona los niveles y cuántas versiones diferentes (DIN A4) deseas crear. Se generará un documento con las fichas y un apéndice con todas las soluciones.</p>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1">
+                <div id="print-error-msg" class="hidden mb-4 p-3 bg-red-100 text-red-700 border border-red-300 rounded-lg text-sm font-semibold">
+                    Por favor, selecciona al menos un nivel disponible.
+                </div>
+
+                <div class="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <label for="print-versions" class="block font-bold text-blue-800 mb-2">Número de versiones distintas:</label>
+                    <select id="print-versions" class="w-full p-2 border border-blue-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-gray-800">
+                        <option value="1">1 versión</option>
+                        <option value="2">2 versiones</option>
+                        <option value="3">3 versiones</option>
+                        <option value="4">4 versiones</option>
+                    </select>
+                    <p class="text-xs text-blue-600 mt-1">Se generarán operaciones mezcladas diferentes para cada versión, evitando que el alumnado copie.</p>
+                </div>
+
+                <h3 class="font-bold text-gray-700 mb-3 border-b pb-2">Niveles disponibles:</h3>
+                <div id="print-levels-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                    <!-- Checkboxes se generan aquí -->
+                </div>
+
+                <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="print-pro-cb" class="form-checkbox h-5 w-5 text-orange-600 rounded focus:ring-orange-500">
+                        <span class="ml-3 font-bold text-orange-800">Generar con dificultad "Reto PRO" 🏆</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl flex justify-end gap-3">
+                <button id="cancel-print-btn" class="px-6 py-2 rounded-lg text-gray-600 font-semibold hover:bg-gray-200 transition-colors border border-gray-300">
+                    Cancelar
+                </button>
+                <button id="generate-print-btn" class="px-6 py-2 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 transition-colors shadow-md">
+                    Generar e Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRINT SECTION FALLBACK (Solo se muestra si el navegador bloquea las ventanas emergentes) -->
+    <div id="print-section" class="hidden w-full bg-white min-h-screen">
+        <!-- Contenido de respaldo inyectado dinámicamente -->
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA FOR ALL LEVELS ---
+            const levels = [
+                {
+                    title: "Nivel 1: Estrategias de Suma",
+                    description: "Sumar usando compensación, descomposición o la recta numérica.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategias para la Suma</h2>
+                        <p class="text-gray-600 mb-6">Existen varios trucos para sumar mentalmente sin necesidad de papel. ¡Elige el que mejor se adapte a cada operación y a tu forma de pensar!</p>
+                        
+                        <!-- Estrategia 1: Compensación -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-blue-800 mb-3 border-b-2 border-blue-200 pb-2">Estrategia 1: Sumar por compensación</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Redondea uno de los números para que sea más fácil de manejar y luego ajusta el resultado. Es como "pedir prestado" para devolverlo después.</p>
+                            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 39 + 57</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>El <strong class="text-blue-700">39</strong> está muy cerca del <strong class="text-blue-700">40</strong>. Le falta solo 1.</li>
+                                    <li>Le "pedimos prestado" ese 1 al 57. La operación se convierte en: <strong class="text-blue-700">40 + 56</strong>.</li>
+                                    <li>¡Mucho más fácil! <strong class="text-2xl font-bold text-green-600">40 + 56 = 96</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Descomposición -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-purple-800 mb-3 border-b-2 border-purple-200 pb-2">Estrategia 2: Descomponiendo los números</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Rompe cada número en decenas y unidades para sumarlos por separado. ¡Es como ordenar piezas de un puzle!</p>
+                            <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 39 + 57</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Descomponemos los números: <strong class="text-purple-700">39 = 30 + 9</strong> y <strong class="text-purple-700">57 = 50 + 7</strong>.</li>
+                                    <li>Sumamos las decenas: <strong class="text-purple-700">30 + 50 = 80</strong>.</li>
+                                    <li>Sumamos las unidades: <strong class="text-purple-700">9 + 7 = 16</strong>.</li>
+                                    <li>Juntamos todo: <strong class="text-2xl font-bold text-green-600">80 + 16 = 96</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 3: Saltos en la recta numérica -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-teal-800 mb-3 border-b-2 border-teal-200 pb-2">Estrategia 3: Saltos en la recta numérica</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Colócate en uno de los números y da "saltos" tan grandes como el otro número, descomponiéndolo en decenas y unidades.</p>
+                            <div class="bg-teal-50 p-6 rounded-lg border border-teal-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 39 + 57</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Nos ponemos en el número más grande, el <strong class="text-teal-700">57</strong>.</li>
+                                    <li>Damos un salto grande de <strong class="text-teal-700">30</strong> (las decenas del 39): <strong class="text-teal-700">57 + 30 = 87</strong>.</li>
+                                    <li>Ahora damos un salto pequeño de <strong class="text-teal-700">9</strong> (las unidades del 39): <strong class="text-teal-700">87 + 9 = 96</strong>.</li>
+                                    <li>¡Resultado final! <strong class="text-2xl font-bold text-green-600">96</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li>La <strong>compensación</strong> es ideal para números que acaban en 8 o 9.</li>
+                                <li>La <strong>descomposición</strong> funciona genial siempre, sobre todo si te lías con las "llevadas".</li>
+                                <li>Los <strong>saltos en la recta</strong> son muy visuales y te ayudan a no perderte.</li>
+                                <li>¡No hay una estrategia mejor que otra! La mejor es la que tú entiendas y te resulte más rápida.</li>
+                            </ul>
+                        </div>`,
+                    generateProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            const base = (Math.floor(Math.random() * 8) + 2) * 10;
+                            let num1 = base - (Math.floor(Math.random() * 3) + 1);
+                            let num2 = Math.floor(Math.random() * 80) + 15;
+                            if (Math.random() > 0.5) [num1, num2] = [num2, num1];
+                            problems.push({ text: `${num1} + ${num2}`, answer: num1 + num2 });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            const base = (Math.floor(Math.random() * 8) + 2) * 100;
+                            let num1 = base - (Math.floor(Math.random() * 4) + 1);
+                            let num2 = Math.floor(Math.random() * 800) + 150;
+                            if (Math.random() > 0.5) [num1, num2] = [num2, num1];
+                            problems.push({ text: `${num1} + ${num2}`, answer: num1 + num2 });
+                        }
+                        return problems;
+                    }
+                },
+                {
+                    title: "Nivel 2: Estrategias de Resta",
+                    description: "Restar usando compensación, descomposición o contando hacia arriba.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategias para la Resta</h2>
+                        <p class="text-gray-600 mb-6">Restar mentalmente puede ser tan fácil como sumar si usas el truco adecuado. ¡Vamos a ver algunos!</p>
+                        
+                        <!-- Estrategia 1: Compensación -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-red-800 mb-3 border-b-2 border-red-200 pb-2">Estrategia 1: Restar por compensación</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Redondea el número que restas (el sustraendo) para que sea más fácil. ¡Pero no olvides devolver lo que quitaste de más!</p>
+                            <div class="bg-red-50 p-6 rounded-lg border border-red-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 83 - 49</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>El <strong class="text-red-700">49</strong> está muy cerca del <strong class="text-red-700">50</strong>.</li>
+                                    <li>Restamos 50, que es más fácil: <strong class="text-red-700">83 - 50 = 33</strong>.</li>
+                                    <li>Pero hemos quitado 1 de más (porque 50 es 1 más que 49). ¡Hay que devolverlo!</li>
+                                    <li>Sumamos ese 1 al resultado: <strong class="text-2xl font-bold text-green-600">33 + 1 = 34</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Descomposición -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-yellow-800 mb-3 border-b-2 border-yellow-200 pb-2">Estrategia 2: Quitar por partes (Descomponiendo)</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Descompón el número que restas en decenas y unidades y quítalo en dos pasos. ¡Como bajar una escalera de dos en dos!</p>
+                            <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 83 - 49</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Descomponemos el <strong class="text-yellow-700">49</strong> en <strong class="text-yellow-700">40</strong> y <strong class="text-yellow-700">9</strong>.</li>
+                                    <li>Primero, quitamos las decenas: <strong class="text-yellow-700">83 - 40 = 43</strong>.</li>
+                                    <li>Ahora, al resultado le quitamos las unidades: <strong class="text-yellow-700">43 - 9 = 34</strong>.</li>
+                                    <li>¡Listo! El resultado es <strong class="text-2xl font-bold text-green-600">34</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 3: Contar hacia arriba -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-green-800 mb-3 border-b-2 border-green-200 pb-2">Estrategia 3: Escalera ascendente</h3>
+                            <p class="text-gray-600 mt-2 mb-4">En lugar de quitar, calcula cuánto le falta al número pequeño para llegar al grande. ¡Es como preguntar "¿cuántos pasos hay entre ellos?"</p>
+                            <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 83 - 49</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>¿Cuánto le falta al <strong class="text-green-700">49</strong> para llegar al <strong class="text-green-700">83</strong>?</li>
+                                    <li>Del <strong class="text-green-700">49</strong> al <strong class="text-green-700">50</strong> hay <strong class="text-green-700">1</strong>. (Ya tenemos 1)</li>
+                                    <li>Del <strong class="text-green-700">50</strong> al <strong class="text-green-700">80</strong> hay <strong class="text-green-700">30</strong>. (Ya tenemos 1 + 30 = 31)</li>
+                                    <li>Del <strong class="text-green-700">80</strong> al <strong class="text-green-700">83</strong> hay <strong class="text-green-700">3</strong>. (Sumamos todo: 31 + 3 = 34)</li>
+                                    <li>La diferencia es <strong class="text-2xl font-bold text-green-600">34</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li>La <strong>compensación</strong> es perfecta cuando el número que restas acaba en 8 o 9.</li>
+                                <li>La <strong>escalera ascendente</strong> es muy útil cuando los números están cerca.</li>
+                                <li><strong>Quitar por partes</strong> es una estrategia muy segura que funciona siempre.</li>
+                            </ul>
+                        </div>`,
+                    generateProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            let num1 = Math.floor(Math.random() * 80) + 20; // 20 to 99
+                            let num2 = Math.floor(Math.random() * (num1 - 10)) + 10;
+                            if (Math.random() > 0.3) { // 70% chance
+                                const tens = Math.floor(num2 / 10) * 10;
+                                const ones = Math.random() > 0.5 ? 9 : 8;
+                                num2 = tens + ones;
+                                if (num2 >= num1) {
+                                     num2 = Math.floor(Math.random() * (num1 - 10)) + 10;
+                                }
+                            }
+                            problems.push({ text: `${num1} - ${num2}`, answer: num1 - num2 });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            let num1 = Math.floor(Math.random() * 800) + 200; // 200 to 999
+                            let num2 = Math.floor(Math.random() * (num1 - 100)) + 100;
+                            if (Math.random() > 0.3) { // 70% chance to end in 98, 99 etc.
+                                 const hundreds = Math.floor(num2 / 100) * 100;
+                                 const remainder = Math.random() > 0.5 ? 99 : 98;
+                                 num2 = hundreds + remainder;
+                                 if (num2 >= num1) {
+                                      num2 = Math.floor(Math.random() * (num1 - 100)) + 100;
+                                 }
+                            }
+                            problems.push({ text: `${num1} - ${num2}`, answer: num1 - num2 });
+                        }
+                        return problems;
+                    }
+                },
+                {
+                    title: "Nivel 3: Multiplicar x10, x100...",
+                    description: "Multiplicar por la unidad seguida de ceros.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategia: Multiplicar por 10, 100, 1.000...</h2>
+                        <p class="text-gray-600 mb-6">Multiplicar por la unidad seguida de ceros (10, 100, 1.000) es una de las reglas más fáciles y útiles. ¡El truco está en mover la coma o añadir ceros!</p>
+                        
+                        <!-- Estrategia 1: Multiplicar Números Enteros -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-cyan-800 mb-3 border-b-2 border-cyan-200 pb-2">Estrategia 1: Con números enteros</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Para multiplicar un número entero por 10, 100 o 1.000, simplemente <strong class="text-cyan-700">añade al final del número tantos ceros</strong> como tenga el multiplicador.</p>
+                            <div class="bg-cyan-50 p-6 rounded-lg border border-cyan-200">
+                                <h4 class="font-bold mb-2">Ejemplos:</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                    <li><strong>45 x 10</strong> = 45<strong>0</strong> (Añadimos <strong>un</strong> cero)</li>
+                                    <li><strong>78 x 100</strong> = 78<strong>00</strong> (Añadimos <strong>dos</strong> ceros)</li>
+                                    <li><strong>123 x 1.000</strong> = 123.<strong>000</strong> (Añadimos <strong>tres</strong> ceros)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Multiplicar Números Decimales -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-indigo-800 mb-3 border-b-2 border-indigo-200 pb-2">Estrategia 2: Con números decimales</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Para multiplicar un número decimal, <strong class="text-indigo-700">mueve la coma decimal hacia la derecha</strong> tantas posiciones como ceros tenga el multiplicador.</p>
+                            <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                                <h4 class="font-bold mb-2">Ejemplos:</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                    <li><strong>3,14 x 10</strong> = 31,4 (Movemos la coma <strong>1</strong> posición)</li>
+                                    <li><strong>14,5 x 100</strong> = 1.450 (Movemos la coma <strong>2</strong> posiciones. Como falta un número, añadimos un cero)</li>
+                                    <li><strong>0,62 x 1.000</strong> = 620 (Movemos la coma <strong>3</strong> posiciones. 0,62 &rarr; 6,2 &rarr; 62 &rarr; 620)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li>Contar los ceros es el primer paso. ¡No te dejes ninguno!</li>
+                                <li>Si mueves la coma y te quedas sin números, <strong>rellena con ceros</strong>. (Ej: 1,5 x 100 = 150)</li>
+                                <li>¡Esta regla es la base para muchas otras operaciones!</li>
+                            </ul>
+                        </div>`,
+                    generateProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            const multiplier = Math.random() > 0.5 ? 10 : 100;
+                            let num1;
+                            let textNum1;
+                            if (Math.random() < 0.5) { // Integer
+                                num1 = Math.floor(Math.random() * 98) + 2; // 2 to 99
+                                textNum1 = num1.toString();
+                            } else { // Decimal
+                                let base = Math.floor(Math.random() * 989) + 11; // 11 to 999
+                                num1 = (Math.random() > 0.5) ? (base / 10) : (base / 100); // 1.1-99.9 or 0.11-9.99
+                                textNum1 = num1.toString().replace('.', ',');
+                            }
+                            let answer = num1 * multiplier;
+                            answer = parseFloat(answer.toFixed(4)); // Fix float issues
+                            problems.push({ text: `${textNum1} x ${multiplier}`, answer: answer });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            let multiplier = 10;
+                            const rand = Math.random();
+                            if (rand > 0.66) multiplier = 1000;
+                            else if (rand > 0.33) multiplier = 100;
+
+                            let num1;
+                            let textNum1;
+                            if (Math.random() < 0.5) { // Integer
+                                num1 = Math.floor(Math.random() * 980) + 20; // 20 to 999
+                                textNum1 = num1.toString();
+                            } else { // Decimal
+                                let base = Math.floor(Math.random() * 9989) + 11; // 11 to 9999
+                                let decimals = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3 decimals
+                                num1 = base / Math.pow(10, decimals);
+                                textNum1 = num1.toString().replace('.', ',');
+                            }
+                            
+                            let answer = num1 * multiplier;
+                            answer = parseFloat(answer.toFixed(4));
+                            problems.push({ text: `${textNum1} x ${multiplier}`, answer: answer });
+                        }
+                        return problems;
+                    }
+                },
+                { 
+                    title: "Nivel 4: Dividir :10, :100...", 
+                    description: "Dividir por la unidad seguida de ceros.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategia: Dividir :10, :100, :1.000...</h2>
+                        <p class="text-gray-600 mb-6">Dividir por la unidad seguida de ceros es la operación inversa a multiplicar. ¡El truco es mover la coma hacia la izquierda o quitar ceros!</p>
+
+                        <!-- Estrategia 1: Dividir Números Enteros -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-green-800 mb-3 border-b-2 border-green-200 pb-2">Estrategia 1: Con números enteros</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Para dividir un número entero, <strong class="text-green-700">mueve la coma decimal (imaginaria, al final) hacia la izquierda</strong> tantas posiciones como ceros tenga el divisor. Si el número acaba en ceros, ¡es más fácil!</p>
+                            <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                                <h4 class="font-bold mb-2">Ejemplos (Acabados en cero):</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                    <li><strong>450 : 10</strong> = 45 (Quitamos <strong>un</strong> cero / Movemos la coma 1 posición)</li>
+                                    <li><strong>7.800 : 100</strong> = 78 (Quitamos <strong>dos</strong> ceros / Movemos la coma 2 posiciones)</li>
+                                    <li><strong>123.000 : 1.000</strong> = 123 (Quitamos <strong>tres</strong> ceros / Movemos la coma 3 posiciones)</li>
+                                </ul>
+                                <h4 class="font-bold mt-4 mb-2">Ejemplos (Sin ceros suficientes):</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                    <li><strong>45 : 10</strong> = 4,5 (Movemos la coma <strong>1</strong> posición)</li>
+                                    <li><strong>78 : 100</strong> = 0,78 (Movemos la coma <strong>2</strong> posiciones. Rellenamos con un cero)</li>
+                                    <li><strong>123 : 1.000</strong> = 0,123 (Movemos la coma <strong>3</strong> posiciones. Rellenamos con un cero)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Dividir Números Decimales -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-orange-800 mb-3 border-b-2 border-orange-200 pb-2">Estrategia 2: Con números decimales</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Para dividir un número decimal, <strong class="text-orange-700">mueve la coma decimal hacia la IZQUIERDA</strong> tantas posiciones como ceros tenga el divisor.</p>
+                            <div class="bg-orange-50 p-6 rounded-lg border border-orange-200">
+                                <h4 class="font-bold mb-2">Ejemplos:</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                    <li><strong>31,4 : 10</strong> = 3,14 (Movemos la coma <strong>1</strong> posición a la izquierda)</li>
+                                    <li><strong>14,5 : 100</strong> = 0,145 (Movemos la coma <strong>2</strong> posiciones. Rellenamos con ceros)</li>
+                                    <li><strong>620 : 1.000</strong> = 0,620 = 0,62 (Movemos la coma <strong>3</strong> posiciones)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li><strong>Multiplicar &rarr; Derecha</strong>. <strong>Dividir &larr; Izquierda</strong>. ¡Acuérdate de esta regla!</li>
+                                <li>Si al mover la coma te faltan "huecos", <strong>rellena con ceros</strong> (Ej: 3,2 : 100 = 0,032).</li>
+                            </ul>
+                        </div>`,
+                    generateProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            const divisor = Math.random() > 0.5 ? 10 : 100;
+                            let num1;
+                            let textNum1;
+                            let answer;
+
+                            if (Math.random() > 0.4) { // 60% chance: Integer dividend
+                                let base = Math.floor(Math.random() * 989) + 11; // 11 to 999
+                                if (Math.random() > 0.5) { // Make it a clean division
+                                    num1 = base * divisor;
+                                    answer = base;
+                                } else { // Make it result in a decimal
+                                    num1 = base;
+                                    answer = base / divisor;
+                                }
+                                textNum1 = num1.toString();
+                            } else { // 40% chance: Decimal dividend
+                                let base = Math.floor(Math.random() * 9899) + 101; // 101 to 9999
+                                num1 = (Math.random() > 0.5) ? (base / 10) : (base / 100); // X,X or X,XX
+                                textNum1 = num1.toString().replace('.', ',');
+                                answer = num1 / divisor;
+                            }
+                            
+                            answer = parseFloat(answer.toFixed(4)); // Fix float issues
+                            problems.push({ text: `${textNum1} : ${divisor}`, answer: answer });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            let divisor = 10;
+                            const rand = Math.random();
+                            if (rand > 0.66) divisor = 1000;
+                            else if (rand > 0.33) divisor = 100;
+
+                            let num1;
+                            let textNum1;
+                            let answer;
+
+                            if (Math.random() > 0.4) { // 60% chance: Integer dividend
+                                let base = Math.floor(Math.random() * 9899) + 101; // 101 to 9999
+                                if (Math.random() > 0.5) { // Make it a clean division
+                                    num1 = base * divisor;
+                                    answer = base;
+                                } else { // Make it result in a decimal
+                                    num1 = base;
+                                    answer = base / divisor;
+                                }
+                                textNum1 = num1.toString();
+                            } else { // 40% chance: Decimal dividend
+                                let base = Math.floor(Math.random() * 99899) + 101; // 101 to 99999
+                                let decimals = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3 decimals
+                                num1 = base / Math.pow(10, decimals);
+                                textNum1 = num1.toString().replace('.', ',');
+                                answer = num1 / divisor;
+                            }
+                            
+                            answer = parseFloat(answer.toFixed(6)); // Fix float issues (up to 6 decimals)
+                            problems.push({ text: `${textNum1} : ${divisor}`, answer: answer });
+                        }
+                        return problems;
+                    }
+                },
+                {
+                    title: "Nivel 5: Decimales x10, x100...",
+                    description: "Multiplicar específicamente decimales por la unidad seguida de ceros.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategia: Multiplicar decimales por 10, 100, 1.000...</h2>
+                        <p class="text-gray-600 mb-6">Al multiplicar un número decimal por la unidad seguida de ceros, el valor del número aumenta. ¡El secreto está en desplazar la coma hacia la <strong>derecha</strong>!</p>
+                        
+                        <!-- Estrategia 1: Mover la coma -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-purple-800 mb-3 border-b-2 border-purple-200 pb-2">Regla de oro: Mover la coma a la derecha</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Solo tienes que contar los ceros que acompañan al uno (10 tiene un cero, 100 tiene dos, etc.) y mover la coma hacia la derecha ese mismo número de posiciones.</p>
+                            <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                                <h4 class="font-bold mb-2">Ejemplos:</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                    <li><strong>5,234 x 10</strong> = 52,34 (Movemos la coma <strong>1</strong> posición)</li>
+                                    <li><strong>14,58 x 100</strong> = 1458 (Movemos la coma <strong>2</strong> posiciones. ¡La coma desaparece porque el número se vuelve entero!)</li>
+                                    <li><strong>0,375 x 100</strong> = 37,5 (Movemos la coma <strong>2</strong> posiciones)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Rellenar con ceros -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-pink-800 mb-3 border-b-2 border-pink-200 pb-2">Estrategia de rescate: ¿Y si me faltan cifras?</h3>
+                            <p class="text-gray-600 mt-2 mb-4">A veces el multiplicador tiene más ceros que las cifras decimales de nuestro número. En ese caso, tras mover la coma hasta el final, <strong class="text-pink-700">añade ceros</strong> para completar los "saltos" restantes.</p>
+                            <div class="bg-pink-50 p-6 rounded-lg border border-pink-200">
+                                <h4 class="font-bold mb-2">Ejemplos con ceros extra:</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                    <li><strong>7,2 x 100</strong> = 720 (Tenemos que mover 2 posiciones, pero solo hay un decimal. Movemos la coma 1 vez, y añadimos <strong>un</strong> cero).</li>
+                                    <li><strong>0,5 x 1.000</strong> = 500 (Tenemos que mover 3 posiciones. Gastamos 1 en el 5, y añadimos <strong>dos</strong> ceros).</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li><strong>Paso 1:</strong> Cuenta los ceros del multiplicador.</li>
+                                <li><strong>Paso 2:</strong> Da saltitos con la coma hacia la derecha.</li>
+                                <li><strong>Paso 3:</strong> Si te quedas sin números para saltar, pon ceros de regalo.</li>
+                            </ul>
+                        </div>`,
+                    generateProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            const multipliers = [10, 100, 1000];
+                            const multiplier = multipliers[Math.floor(Math.random() * multipliers.length)];
+                            
+                            // Asegurar un número decimal (no entero puro)
+                            let base = Math.floor(Math.random() * 999) + 1;
+                            if (base % 10 === 0) base += 1; 
+                            
+                            let decimals = Math.floor(Math.random() * 3) + 1; // 1, 2 o 3 cifras decimales
+                            let num = base / Math.pow(10, decimals);
+                            
+                            let textNum = num.toString().replace('.', ',');
+                            let answer = num * multiplier;
+                            answer = parseFloat(answer.toFixed(4)); 
+                            
+                            problems.push({ text: `${textNum} x ${multiplier}`, answer: answer });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            const multipliers = [100, 1000, 10000];
+                            const multiplier = multipliers[Math.floor(Math.random() * multipliers.length)];
+                            
+                            // Número decimal con mayor precisión/complejidad
+                            let base = Math.floor(Math.random() * 9999) + 1;
+                            if (base % 10 === 0) base += 3;
+                            
+                            let decimals = Math.floor(Math.random() * 4) + 1; // hasta 4 cifras decimales
+                            let num = base / Math.pow(10, decimals);
+                            
+                            let textNum = num.toString().replace('.', ',');
+                            let answer = num * multiplier;
+                            answer = parseFloat(answer.toFixed(6)); 
+                            
+                            problems.push({ text: `${textNum} x ${multiplier}`, answer: answer });
+                        }
+                        return problems;
+                    }
+                },
+                {
+                    title: "Nivel 6: Decimales :10, :100...",
+                    description: "Dividir decimales entre la unidad seguida de ceros.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategia: Dividir decimales entre 10, 100, 1.000...</h2>
+                        <p class="text-gray-600 mb-6">Al dividir, el número se hace más pequeño. Por eso, al dividir un número decimal entre la unidad seguida de ceros, la coma se desplaza hacia la <strong>izquierda</strong>.</p>
+                        
+                        <!-- Estrategia 1: Mover la coma -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-teal-800 mb-3 border-b-2 border-teal-200 pb-2">Regla de oro: Mover la coma a la izquierda</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Cuenta los ceros del divisor (10 tiene un cero, 100 tiene dos...) y mueve la coma hacia la izquierda ese mismo número de posiciones.</p>
+                            <div class="bg-teal-50 p-6 rounded-lg border border-teal-200">
+                                <h4 class="font-bold mb-2">Ejemplos:</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                    <li><strong>52,34 : 10</strong> = 5,234 (Movemos la coma <strong>1</strong> posición a la izquierda)</li>
+                                    <li><strong>145,8 : 100</strong> = 1,458 (Movemos la coma <strong>2</strong> posiciones)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Rellenar con ceros -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-rose-800 mb-3 border-b-2 border-rose-200 pb-2">Estrategia de rescate: ¿Y si no hay suficientes cifras?</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Si al mover la coma hacia la izquierda te quedas sin números, debes <strong class="text-rose-700">añadir ceros</strong> delante del número (¡y no olvides poner un cero antes de la coma!).</p>
+                            <div class="bg-rose-50 p-6 rounded-lg border border-rose-200">
+                                <h4 class="font-bold mb-2">Ejemplos con ceros extra:</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                    <li><strong>7,2 : 100</strong> = 0,072 (Movemos 2 posiciones. Saltamos el 7 y nos falta una posición, así que ponemos un cero. Queda ,072 &rarr; añadimos el cero inicial: 0,072)</li>
+                                    <li><strong>0,5 : 10</strong> = 0,05 (Movemos 1 posición y añadimos el cero inicial)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li><strong>Recordatorio vital:</strong> Multiplicar &rarr; Derecha. Dividir &rarr; Izquierda.</li>
+                                <li>¡Cuidado con los ceros delante de la coma! Un número decimal nunca empieza directamente por la coma, siempre lleva un <strong>0,</strong> si no hay parte entera.</li>
+                            </ul>
+                        </div>`,
+                    generateProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            const divisors = [10, 100, 1000];
+                            const divisor = divisors[Math.floor(Math.random() * divisors.length)];
+                            
+                            // Generamos un decimal para ser el dividendo
+                            let base = Math.floor(Math.random() * 9999) + 11;
+                            let decimals = Math.floor(Math.random() * 3) + 1; // 1, 2 o 3 cifras decimales
+                            let num = base / Math.pow(10, decimals);
+                            
+                            let textNum = num.toString().replace('.', ',');
+                            let answer = num / divisor;
+                            answer = parseFloat(answer.toFixed(6)); 
+                            
+                            problems.push({ text: `${textNum} : ${divisor}`, answer: answer });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            const divisors = [100, 1000, 10000];
+                            const divisor = divisors[Math.floor(Math.random() * divisors.length)];
+                            
+                            // Decimales más largos y desafiantes
+                            let base = Math.floor(Math.random() * 99999) + 1;
+                            let decimals = Math.floor(Math.random() * 4) + 1; // hasta 4 cifras decimales
+                            let num = base / Math.pow(10, decimals);
+                            
+                            let textNum = num.toString().replace('.', ',');
+                            let answer = num / divisor;
+                            answer = parseFloat(answer.toFixed(8)); // Mayor precisión requerida
+                            
+                            problems.push({ text: `${textNum} : ${divisor}`, answer: answer });
+                        }
+                        return problems;
+                    }
+                },
+                {
+                    title: "Nivel 7: Multiplicar por decenas...",
+                    description: "Multiplicar por decenas, centenas y millares enteros.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategia: Multiplicar por decenas, centenas...</h2>
+                        <p class="text-gray-600 mb-6">¿Qué pasa si en lugar de multiplicar por 10 o 100, multiplicamos por 20, 300 o 4.000? ¡El truco de los ceros sigue funcionando, pero con un paso extra muy sencillo!</p>
+                        
+                        <!-- Estrategia 1: Ignorar y devolver -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-blue-800 mb-3 border-b-2 border-blue-200 pb-2">Regla de oro: Ignora y devuelve los ceros</h3>
+                            <p class="text-gray-600 mt-2 mb-4">La estrategia más rápida es <strong>ignorar los ceros finales</strong> de los números, multiplicar las cifras que quedan, y al final <strong>añadir todos los ceros</strong> que ignoraste al principio.</p>
+                            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                                <h4 class="font-bold mb-2">Ejemplo 1: 4 x 30</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Ignoramos el cero del 30 y nos queda <strong class="text-blue-700">4 x 3</strong>.</li>
+                                    <li>Multiplicamos: <strong class="text-blue-700">4 x 3 = 12</strong>.</li>
+                                    <li>Devolvemos el cero que ignoramos al resultado final: <strong class="text-2xl font-bold text-green-600">120</strong>.</li>
+                                </ol>
+                                
+                                <h4 class="font-bold mt-4 mb-2">Ejemplo 2: 15 x 200</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Ignoramos los dos ceros del 200 y nos queda <strong class="text-blue-700">15 x 2</strong>.</li>
+                                    <li>Multiplicamos: <strong class="text-blue-700">15 x 2 = 30</strong>.</li>
+                                    <li>Devolvemos los dos ceros al resultado final: <strong class="text-2xl font-bold text-green-600">3.000</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Ceros en los dos factores -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-purple-800 mb-3 border-b-2 border-purple-200 pb-2">Cuando ambos números tienen ceros</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Si ambos números terminan en ceros, ¡hacemos lo mismo! Sumamos la cantidad total de ceros de los dos números para ponerlos al final.</p>
+                            <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 40 x 500</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Ignoramos los ceros (uno del 40 y dos del 500 = 3 ceros en total). Nos queda <strong class="text-purple-700">4 x 5</strong>.</li>
+                                    <li>Multiplicamos: <strong class="text-purple-700">4 x 5 = 20</strong>.</li>
+                                    <li>Devolvemos los <strong class="text-purple-700">3 ceros</strong> poniéndolos detrás del 20: <strong class="text-2xl font-bold text-green-600">20.000</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li>¡Cuidado al multiplicar números como 4 x 5 o 5 x 6! Su resultado ya termina en cero (20, 30...). <strong>Ese cero de la multiplicación no cuenta</strong> como uno de los ceros que devuelves. Los ceros "devueltos" se añaden siempre <em>después</em>.</li>
+                            </ul>
+                        </div>
+                    `,
+                    generateProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            // Generar un número de 1 o 2 cifras (ej. 2-15)
+                            const num1 = Math.floor(Math.random() * 14) + 2; 
+                            // Generar un múltiplo de 10, 100 o 1000 (ej. 20-90, 200-900)
+                            const multiplierBase = Math.floor(Math.random() * 8) + 2; // 2-9
+                            const zeros = Math.random() > 0.5 ? 10 : 100;
+                            const num2 = multiplierBase * zeros;
+                            
+                            // Mezclar el orden para que a veces el número grande esté primero
+                            const order = Math.random() > 0.5;
+                            const text = order ? `${num1} x ${num2}` : `${num2} x ${num1}`;
+                            const answer = num1 * num2;
+                            
+                            problems.push({ text: text, answer: answer });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            // Ambos números tendrán ceros o el primero será un poco más difícil
+                            const base1 = Math.floor(Math.random() * 15) + 5; // 5-19
+                            const zeros1 = Math.random() > 0.5 ? 10 : 100;
+                            let num1 = base1 * zeros1;
+                            
+                            const base2 = Math.floor(Math.random() * 8) + 2; // 2-9
+                            const zeros2 = Math.random() > 0.5 ? 100 : 1000;
+                            let num2 = base2 * zeros2;
+                            
+                            // Ocasionalmente hacer uno sin ceros extra, pero de 2 cifras más altas
+                            if (Math.random() > 0.7) {
+                                num1 = Math.floor(Math.random() * 40) + 11; // 11-50
+                            }
+
+                            const order = Math.random() > 0.5;
+                            const text = order ? `${num1} x ${num2}` : `${num2} x ${num1}`;
+                            const answer = num1 * num2;
+                            
+                            problems.push({ text: text, answer: answer });
+                        }
+                        return problems;
+                    }
+                },
+                // --- NIVEL 8 RESTAURADO ---
+                {
+                    title: "Nivel 8: Multiplicar por descomposición",
+                    description: "Multiplicar descomponiendo uno de los factores en decenas y unidades.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategia: Multiplicar por descomposición</h2>
+                        <p class="text-gray-600 mb-6">A veces multiplicar números de dos cifras mentalmente parece muy difícil, pero ¡se vuelve fácil si "rompemos" uno de los números en partes más pequeñas!</p>
+                        
+                        <!-- Estrategia 1: Romper en decenas y unidades -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-indigo-800 mb-3 border-b-2 border-indigo-200 pb-2">Regla de oro: Descomponer y sumar</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Elige el número que sea más fácil de separar (suele ser el más pequeño) y pártelo en <strong>decenas y unidades</strong>. Luego multiplica el otro número por cada parte y suma los resultados.</p>
+                            <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                                <h4 class="font-bold mb-2">Ejemplo 1: 23 x 12</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Descomponemos el 12 en <strong class="text-indigo-700">10 + 2</strong>. La operación es ahora 23 x (10 + 2).</li>
+                                    <li>Multiplicamos por 10: <strong class="text-indigo-700">23 x 10 = 230</strong>.</li>
+                                    <li>Multiplicamos por 2: <strong class="text-indigo-700">23 x 2 = 46</strong>.</li>
+                                    <li>Sumamos los resultados: <strong class="text-2xl font-bold text-green-600">230 + 46 = 276</strong>.</li>
+                                </ol>
+                                
+                                <h4 class="font-bold mt-4 mb-2">Ejemplo 2: 45 x 21</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Descomponemos el 21 en <strong class="text-indigo-700">20 + 1</strong>. La operación es 45 x (20 + 1).</li>
+                                    <li>Multiplicamos por 20 (recuerda el truco de ignorar el cero: 45 x 2 = 90, le ponemos un cero): <strong class="text-indigo-700">45 x 20 = 900</strong>.</li>
+                                    <li>Multiplicamos por 1: <strong class="text-indigo-700">45 x 1 = 45</strong>.</li>
+                                    <li>Sumamos ambos resultados: <strong class="text-2xl font-bold text-green-600">900 + 45 = 945</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li>Siempre descompón el número que tenga las unidades más bajas (como el 11, 12, 13, 21, 22...), porque multiplicar por 1, 2 o 3 mentalmente es facilísimo.</li>
+                                <li>Este truco usa algo que en matemáticas se llama <strong>Propiedad Distributiva</strong>. Suena muy formal, pero ya ves que simplemente consiste en "repartir" el trabajo.</li>
+                            </ul>
+                        </div>
+                    `,
+                    generateProblems: function() {
+                        const problems = [];
+                        // Multiplicadores ideales para practicar inicialmente
+                        const multipliers = [11, 12, 13, 21, 22]; 
+                        for (let i = 0; i < 20; i++) {
+                            const num1 = Math.floor(Math.random() * 40) + 12; // 12 a 51
+                            const num2 = multipliers[Math.floor(Math.random() * multipliers.length)];
+                            
+                            const order = Math.random() > 0.5;
+                            const text = order ? `${num1} x ${num2}` : `${num2} x ${num1}`;
+                            const answer = num1 * num2;
+                            
+                            problems.push({ text: text, answer: answer });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        // Multiplicadores un poco más complejos
+                        const multipliers = [14, 15, 23, 24, 31, 32, 41, 42]; 
+                        for (let i = 0; i < 20; i++) {
+                            const num1 = Math.floor(Math.random() * 70) + 25; // 25 a 94
+                            const num2 = multipliers[Math.floor(Math.random() * multipliers.length)];
+                            
+                            const order = Math.random() > 0.5;
+                            const text = order ? `${num1} x ${num2}` : `${num2} x ${num1}`;
+                            const answer = num1 * num2;
+                            
+                            problems.push({ text: text, answer: answer });
+                        }
+                        return problems;
+                    }
+                },
+                // --- NIVEL 9 RESTAURADO ---
+                {
+                    title: "Nivel 9: Multiplicar por 9, 11, 19...",
+                    description: "Multiplicar números cercanos a decenas y centenas exactas (9, 11, 19, 99...).",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategia: Multiplicar por "casi redondos"</h2>
+                        <p class="text-gray-600 mb-6">Cuando multiplicamos por números que están pegaditos a una decena o centena exacta (como el 9, el 11, el 19 o el 99), ¡tenemos un atajo increíble! Usamos el número redondo y luego ajustamos sumando o restando.</p>
+                        
+                        <!-- Estrategia 1: Números que se pasan por uno (11, 21, 101) -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-blue-800 mb-3 border-b-2 border-blue-200 pb-2">Estrategia 1: A los que les "sobra" uno (11, 21, 101...)</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Si multiplicas por 11, imagínate que multiplicas por 10 y luego le sumas el número original una vez más.</p>
+                            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                                <h4 class="font-bold mb-2">Ejemplo 1: 35 x 11</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Pensamos en el 11 como <strong class="text-blue-700">(10 + 1)</strong>.</li>
+                                    <li>Multiplicamos por el redondo: <strong class="text-blue-700">35 x 10 = 350</strong>.</li>
+                                    <li>Le <strong class="font-bold text-blue-800">sumamos</strong> el número original: <strong class="text-blue-700">350 + 35</strong>.</li>
+                                    <li>Resultado: <strong class="text-2xl font-bold text-green-600">385</strong>.</li>
+                                </ol>
+                                
+                                <h4 class="font-bold mt-4 mb-2">Ejemplo 2: 12 x 201</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Multiplicamos por el redondo (200): <strong class="text-blue-700">12 x 200 = 2.400</strong>.</li>
+                                    <li>Le <strong class="font-bold text-blue-800">sumamos</strong> el número original (12 x 1): <strong class="text-blue-700">2.400 + 12</strong>.</li>
+                                    <li>Resultado: <strong class="text-2xl font-bold text-green-600">2.412</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Números a los que les falta uno (9, 19, 99) -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-rose-800 mb-3 border-b-2 border-rose-200 pb-2">Estrategia 2: A los que les "falta" uno (9, 19, 99...)</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Si multiplicas por 9 o 19, multiplicas por la decena siguiente (10 o 20) y luego le <strong>restas</strong> el número original una vez.</p>
+                            <div class="bg-rose-50 p-6 rounded-lg border border-rose-200">
+                                <h4 class="font-bold mb-2">Ejemplo 1: 25 x 9</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Pensamos en el 9 como <strong class="text-rose-700">(10 - 1)</strong>.</li>
+                                    <li>Multiplicamos por el redondo superior: <strong class="text-rose-700">25 x 10 = 250</strong>.</li>
+                                    <li>Le <strong class="font-bold text-rose-800">restamos</strong> el número original: <strong class="text-rose-700">250 - 25</strong>.</li>
+                                    <li>Resultado: <strong class="text-2xl font-bold text-green-600">225</strong>.</li>
+                                </ol>
+
+                                <h4 class="font-bold mt-4 mb-2">Ejemplo 2: 15 x 19</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Pensamos en el 19 como <strong class="text-rose-700">(20 - 1)</strong>.</li>
+                                    <li>Multiplicamos por 20 (doble y un cero): <strong class="text-rose-700">15 x 20 = 300</strong>.</li>
+                                    <li>Le <strong class="font-bold text-rose-800">restamos</strong> el número original: <strong class="text-rose-700">300 - 15</strong>.</li>
+                                    <li>Resultado: <strong class="text-2xl font-bold text-green-600">285</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li>Si el número acaba en <strong>1</strong> (11, 21), la regla es redondear y <strong>SUMAR</strong>.</li>
+                                <li>Si el número acaba en <strong>9</strong> (9, 19, 99), la regla es redondear hacia arriba y <strong>RESTAR</strong>.</li>
+                                <li>Concéntrate bien al hacer la resta mental, ¡suele ser la parte donde es más fácil despistarse!</li>
+                            </ul>
+                        </div>
+                    `,
+                    generateProblems: function() {
+                        const problems = [];
+                        // Multiplicadores cercanos a decenas para la dificultad normal
+                        const multipliers = [9, 11, 19, 21, 29, 31]; 
+                        for (let i = 0; i < 20; i++) {
+                            const num1 = Math.floor(Math.random() * 35) + 12; // 12 a 46
+                            const num2 = multipliers[Math.floor(Math.random() * multipliers.length)];
+                            
+                            const order = Math.random() > 0.5;
+                            const text = order ? `${num1} x ${num2}` : `${num2} x ${num1}`;
+                            const answer = num1 * num2;
+                            
+                            problems.push({ text: text, answer: answer });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        // Multiplicadores cercanos a centenas para el Reto PRO
+                        const multipliers = [99, 101, 199, 201, 299, 301, 39]; 
+                        for (let i = 0; i < 20; i++) {
+                            const num1 = Math.floor(Math.random() * 50) + 15; // 15 a 64
+                            const num2 = multipliers[Math.floor(Math.random() * multipliers.length)];
+                            
+                            const order = Math.random() > 0.5;
+                            const text = order ? `${num1} x ${num2}` : `${num2} x ${num1}`;
+                            const answer = num1 * num2;
+                            
+                            problems.push({ text: text, answer: answer });
+                        }
+                        return problems;
+                    }
+                },
+                {
+                    title: "Nivel 10: Multiplicar por 2, 3 y 4",
+                    description: "Trucos rápidos para calcular el doble, el triple y el cuádruple de un número.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategia: Multiplicar por 2, 3 y 4</h2>
+                        <p class="text-gray-600 mb-6">Multiplicar por estos números es muy frecuente. Conocer los atajos te hará mucho más rápido en cualquier operación compleja.</p>
+                        
+                        <!-- Estrategia 1: Por 2 -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-blue-800 mb-3 border-b-2 border-blue-200 pb-2">Multiplicar por 2: ¡El Doble!</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Multiplicar por 2 es simplemente calcular el doble. Si el número es grande, <strong class="text-blue-700">descompónlo</strong> en decenas y unidades, calcula el doble de cada parte y suma.</p>
+                            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 34 x 2</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Descomponemos el 34 en <strong class="text-blue-700">30 + 4</strong>.</li>
+                                    <li>El doble de 30 es <strong class="text-blue-700">60</strong>.</li>
+                                    <li>El doble de 4 es <strong class="text-blue-700">8</strong>.</li>
+                                    <li>Sumamos: <strong class="text-2xl font-bold text-green-600">60 + 8 = 68</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Por 4 -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-purple-800 mb-3 border-b-2 border-purple-200 pb-2">Multiplicar por 4: El doble del doble</h3>
+                            <p class="text-gray-600 mt-2 mb-4">¡Un truco genial! En lugar de multiplicar por 4 directamente, calcula <strong class="text-purple-700">el doble del número, y a ese resultado vuélvele a calcular el doble</strong>.</p>
+                            <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 15 x 4</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Calculamos el primer doble (15 x 2): <strong class="text-purple-700">30</strong>.</li>
+                                    <li>Calculamos el segundo doble (30 x 2): <strong class="text-purple-700">60</strong>.</li>
+                                    <li>¡Y ya está! <strong class="text-2xl font-bold text-green-600">15 x 4 = 60</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 3: Por 3 -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-teal-800 mb-3 border-b-2 border-teal-200 pb-2">Multiplicar por 3: El doble más uno</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Para hallar el triple, a veces es más fácil <strong class="text-teal-700">calcular el doble y luego sumarle el número original</strong> una vez más.</p>
+                            <div class="bg-teal-50 p-6 rounded-lg border border-teal-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 21 x 3</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Calculamos el doble de 21: <strong class="text-teal-700">42</strong>.</li>
+                                    <li>A ese 42, le sumamos el número original (21): <strong class="text-teal-700">42 + 21</strong>.</li>
+                                    <li>Resultado: <strong class="text-2xl font-bold text-green-600">63</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li>Multiplicar por 4 asusta, pero pensar en "doble y doble" lo hace súper fácil. Pruébalo con 25 x 4 (doble 50, doble 100).</li>
+                                <li>Si el truco del 3 (doble + uno) te lía, ¡siempre puedes usar la descomposición que aprendimos en el Nivel 8! (21 x 3 = 20x3 + 1x3).</li>
+                            </ul>
+                        </div>
+                    `,
+                    generateProblems: function() {
+                        const problems = [];
+                        const multipliers = [2, 3, 4];
+                        for (let i = 0; i < 20; i++) {
+                            const num1 = Math.floor(Math.random() * 35) + 12; // 12 a 46
+                            const num2 = multipliers[Math.floor(Math.random() * multipliers.length)];
+                            
+                            const order = Math.random() > 0.5;
+                            const text = order ? `${num1} x ${num2}` : `${num2} x ${num1}`;
+                            const answer = num1 * num2;
+                            
+                            problems.push({ text: text, answer: answer });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        const multipliers = [2, 3, 4];
+                        for (let i = 0; i < 20; i++) {
+                            const num1 = Math.floor(Math.random() * 85) + 35; // 35 a 119
+                            const num2 = multipliers[Math.floor(Math.random() * multipliers.length)];
+                            
+                            const order = Math.random() > 0.5;
+                            const text = order ? `${num1} x ${num2}` : `${num2} x ${num1}`;
+                            const answer = num1 * num2;
+                            
+                            problems.push({ text: text, answer: answer });
+                        }
+                        return problems;
+                    }
+                },
+                {
+                    title: "Nivel 11: Dividir entre decenas...",
+                    description: "Dividir números terminados en ceros entre decenas, centenas y millares.",
+                    practicoHTML: `
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Estrategia: Dividir tachando ceros</h2>
+                        <p class="text-gray-600 mb-6">Cuando dividimos números que terminan en ceros (como 120 : 30 o 4.000 : 200), existe un truco mágico que nos ahorra muchísimo trabajo: <strong>¡la ley de tachar ceros!</strong></p>
+
+                        <!-- Estrategia 1: Tachar la misma cantidad -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-blue-800 mb-3 border-b-2 border-blue-200 pb-2">Regla de oro: Tachar 1 a 1</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Podemos eliminar los ceros finales de los dos números, pero <strong>¡ojo!</strong> siempre la misma cantidad en el dividendo y en el divisor. Es como equilibrar una balanza.</p>
+                            <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                                <h4 class="font-bold mb-2">Ejemplo 1: 240 : 60</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Los dos números terminan en un cero. Tachamos <strong>un cero</strong> a cada lado.</li>
+                                    <li>La operación se convierte en <strong class="text-blue-700">24 : 6</strong>.</li>
+                                    <li>Calculamos: <strong class="text-2xl font-bold text-green-600">24 : 6 = 4</strong>. ¡Facilísimo!</li>
+                                </ol>
+
+                                <h4 class="font-bold mt-4 mb-2">Ejemplo 2: 3.500 : 500</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>Tachamos <strong>dos ceros</strong> a cada lado.</li>
+                                    <li>Nos queda <strong class="text-blue-700">35 : 5</strong>.</li>
+                                    <li>Resultado: <strong class="text-2xl font-bold text-green-600">7</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Estrategia 2: Cuando sobran ceros -->
+                        <div class="mb-8">
+                            <h3 class="text-xl font-semibold text-purple-800 mb-3 border-b-2 border-purple-200 pb-2">¿Y si a uno le sobran ceros?</h3>
+                            <p class="text-gray-600 mt-2 mb-4">Si el número grande (el dividendo) tiene más ceros que el pequeño (el divisor), tachamos los que podamos emparejar y dejamos los ceros sobrantes para el resultado final.</p>
+                            <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                                <h4 class="font-bold mb-2">Ejemplo: 4.200 : 60</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                    <li>El 60 solo tiene un cero, así que solo podemos tachar <strong>un cero</strong> a cada lado.</li>
+                                    <li>Nos queda <strong class="text-purple-700">420 : 6</strong>.</li>
+                                    <li>Dividimos 42 entre 6 (que son 7) y añadimos el cero sobrante.</li>
+                                    <li>Resultado final: <strong class="text-2xl font-bold text-green-600">70</strong>.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+                            <h3 class="font-bold text-gray-700 text-lg mb-2">Consejos del profe:</h3>
+                            <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                <li>La regla es estricta: si el divisor (el segundo número) solo tiene un cero, <strong>solo puedes quitar un cero</strong> del primero, ¡aunque tenga muchos!</li>
+                                <li>No confundas los ceros del número con los ceros del resultado. ¡Usa el dedo en la pantalla para tapar los ceros si te ayuda al principio!</li>
+                            </ul>
+                        </div>
+                    `,
+                    generateProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            // Divisores base: 2 a 9
+                            const divBase = Math.floor(Math.random() * 8) + 2; 
+                            // Multiplicador del resultado: 2 a 9
+                            const ansBase = Math.floor(Math.random() * 8) + 2;
+                            
+                            const zerosDivisor = Math.random() > 0.5 ? 10 : 100; // 20, 30, 200, 300...
+                            const extraZeros = Math.random() > 0.5 ? 1 : 10; // Para que queden ceros sobrantes o no
+                            
+                            const num2 = divBase * zerosDivisor; // ej: 30
+                            const answer = ansBase * extraZeros; // ej: 4 o 40
+                            const num1 = num2 * answer; // ej: 30 * 4 = 120, o 30 * 40 = 1200
+                            
+                            problems.push({ text: `${num1} : ${num2}`, answer: answer });
+                        }
+                        return problems;
+                    },
+                    generateProProblems: function() {
+                        const problems = [];
+                        for (let i = 0; i < 20; i++) {
+                            const divBase = Math.floor(Math.random() * 14) + 2; // 2 a 15
+                            const ansBase = Math.floor(Math.random() * 14) + 2; // 2 a 15
+                            
+                            const zerosDivisor = [10, 100, 1000][Math.floor(Math.random() * 3)];
+                            const extraZeros = [1, 10, 100][Math.floor(Math.random() * 3)];
+                            
+                            const num2 = divBase * zerosDivisor;
+                            const answer = ansBase * extraZeros;
+                            const num1 = num2 * answer;
+                            
+                            problems.push({ text: `${num1} : ${num2}`, answer: answer });
+                        }
+                        return problems;
+                    }
+                },
+                { title: "Nivel 12: Dividir nº acabados en 0", description: "Dividir nº acabados en ceros entre 2,3 y 4 y entre decenas y centenas." },
+                { title: "Nivel 13: Dividir entre 2, 4 y 5", description: "Dividir entre 2, 4 y 5." },
+                { title: "Nivel 14: Suma/Resta de decimales", description: "Sumar o restar decimales convirtiendo uno de ellos en natural." },
+                { title: "Nivel 15: Suma/Resta de enteros", description: "Suma y resta de números enteros." },
+                { title: "Nivel 16: Calcular porcentajes", description: "Calcular el 10%, 20%, 25 %, 50% y 75 % de una cantidad." },
+                { title: "Nivel 17: Suma/Resta de enteros (Repaso)", description: "Calcular la suma o resta de números enteros." },
+                { title: "Nivel 18: Multiplicar/Dividir enteros", description: "Multiplicar o dividir números enteros." },
+            ];
+
+            const placeholderPracticoHTML = `
+                <div class="flex flex-col items-center justify-center h-full text-center">
+                    <h2 class="text-2xl font-bold text-gray-500 mb-4">Próximamente...</h2>
+                    <p class="text-gray-400">El contenido de práctica para este nivel se añadirá pronto.</p>
+                </div>`;
+
+            function placeholderGenerateProblems() {
+                return [{ text: 'Nivel no disponible', answer: '...' }];
+            }
+
+            // --- DOM ELEMENTS ---
+            const levelSelector = document.getElementById('level-selector');
+            const levelDescription = document.getElementById('level-description');
+            const tabPractico = document.getElementById('tab-practico');
+            const tabReto = document.getElementById('tab-reto');
+            const contentPractico = document.getElementById('content-practico');
+            const contentReto = document.getElementById('content-reto');
+            const progressText = document.getElementById('progress-text');
+            const problemContainer = document.getElementById('problem-container').querySelector('p');
+            const answerText = document.getElementById('answer-text');
+            const showAnswerBtn = document.getElementById('show-answer-btn');
+            const nextProblemBtn = document.getElementById('next-problem-btn');
+            const newChallengeBtn = document.getElementById('new-challenge-btn');
+            const proChallengeBtn = document.getElementById('pro-challenge-btn');
+
+            // PRINT ELEMENTS
+            const openPrintModalBtn = document.getElementById('open-print-modal-btn');
+            const printModal = document.getElementById('print-modal');
+            const cancelPrintBtn = document.getElementById('cancel-print-btn');
+            const generatePrintBtn = document.getElementById('generate-print-btn');
+            const printLevelsContainer = document.getElementById('print-levels-container');
+            const printSection = document.getElementById('print-section');
+            const printErrorMsg = document.getElementById('print-error-msg');
+
+            let currentProblems = [];
+            let currentProblemIndex = 0;
+            const totalProblems = 20;
+
+            // --- INITIALIZATION ---
+            function init() {
+                levels.forEach((level, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = level.title;
+                    levelSelector.appendChild(option);
+
+                    // Poblar checkboxes del modal de impresión
+                    const cbWrapper = document.createElement('label');
+                    cbWrapper.className = 'flex items-center cursor-pointer p-2 hover:bg-gray-100 rounded-lg transition-colors border border-transparent hover:border-gray-200';
+                    cbWrapper.innerHTML = `
+                        <input type="checkbox" value="${index}" class="print-level-cb form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500">
+                        <span class="ml-2 text-gray-700 text-sm truncate" title="${level.title}">${level.title.split(':')[0]}</span>
+                    `;
+                    printLevelsContainer.appendChild(cbWrapper);
+                });
+
+                levelSelector.addEventListener('change', () => loadLevel(parseInt(levelSelector.value)));
+                
+                tabPractico.addEventListener('click', showPractico);
+                tabReto.addEventListener('click', showReto);
+                showAnswerBtn.addEventListener('click', showAnswer);
+                nextProblemBtn.addEventListener('click', nextProblem);
+                newChallengeBtn.addEventListener('click', () => startNewChallenge(false));
+                proChallengeBtn.addEventListener('click', () => startNewChallenge(true));
+
+                // Print event listeners
+                openPrintModalBtn.addEventListener('click', openPrintModal);
+                cancelPrintBtn.addEventListener('click', closePrintModal);
+                generatePrintBtn.addEventListener('click', generatePrintDocument);
+
+                loadLevel(0);
+                showPractico();
+            }
+
+            // --- LEVEL MANAGEMENT ---
+            function loadLevel(levelIndex) {
+                const level = levels[levelIndex];
+                levelDescription.textContent = level.description;
+                contentPractico.innerHTML = level.practicoHTML || placeholderPracticoHTML;
+                startNewChallenge(false);
+                showPractico(); // Always default to practico tab on level change
+            }
+
+            function startNewChallenge(isPro = false) {
+                const levelIndex = parseInt(levelSelector.value);
+                const level = levels[levelIndex];
+                let generator;
+
+                if (isPro) {
+                    generator = level.generateProProblems || level.generateProblems || placeholderGenerateProblems;
+                } else {
+                    generator = level.generateProblems || placeholderGenerateProblems;
+                }
+                
+                currentProblems = generator();
+                currentProblemIndex = 0;
+                displayProblem();
+            }
+
+            // --- UI/DISPLAY LOGIC ---
+            function displayProblem() {
+                if (currentProblemIndex < currentProblems.length && currentProblems[0].answer !== '...') {
+                    const problem = currentProblems[currentProblemIndex];
+                    problemContainer.textContent = problem.text;
+                    progressText.textContent = `Problema ${currentProblemIndex + 1} / ${totalProblems}`;
+                    answerText.classList.add('opacity-0');
+                    showAnswerBtn.disabled = false;
+                    showAnswerBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    nextProblemBtn.disabled = false;
+                    nextProblemBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    nextProblemBtn.textContent = 'Siguiente';
+                } else if (currentProblems[0].answer === '...') {
+                     problemContainer.textContent = '¡Próximamente!';
+                    progressText.textContent = 'Este reto aún no está disponible';
+                    answerText.classList.add('opacity-0');
+                    showAnswerBtn.disabled = true;
+                    showAnswerBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    nextProblemBtn.disabled = true;
+                    nextProblemBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    problemContainer.textContent = '¡Reto completado!';
+                    progressText.textContent = '¡Buen trabajo!';
+                    showAnswerBtn.disabled = true;
+                    showAnswerBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    nextProblemBtn.textContent = 'Finalizar';
+                    answerText.classList.add('opacity-0');
+                }
+            }
+            
+            function showAnswer() {
+                if (currentProblemIndex < currentProblems.length) {
+                    const problem = currentProblems[currentProblemIndex];
+                    // Format answer with comma if decimal and clean up floating point issues
+                    const answerString = Number(problem.answer.toPrecision(15)).toString().replace('.', ',');
+                    answerText.textContent = `= ${answerString}`;
+                    answerText.classList.remove('opacity-0');
+                    showAnswerBtn.disabled = true;
+                    showAnswerBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            function nextProblem() {
+                if (currentProblemIndex < currentProblems.length) {
+                    currentProblemIndex++;
+                    displayProblem();
+                }
+            }
+
+            function showPractico() {
+                contentPractico.classList.remove('hidden');
+                contentReto.classList.add('hidden');
+                tabPractico.classList.add('tab-active');
+                tabPractico.classList.remove('tab-inactive');
+                tabReto.classList.add('tab-inactive');
+                tabReto.classList.remove('tab-active');
+            }
+
+            function showReto() {
+                contentReto.classList.remove('hidden');
+                contentPractico.classList.add('hidden');
+                tabReto.classList.add('tab-active');
+                tabReto.classList.remove('tab-inactive');
+                tabPractico.classList.add('tab-inactive');
+                tabPractico.classList.remove('tab-active');
+            }
+
+            // --- PRINT LOGIC ---
+            function openPrintModal() {
+                printErrorMsg.classList.add('hidden');
+                printModal.classList.remove('hidden');
+            }
+
+            function closePrintModal() {
+                printModal.classList.add('hidden');
+            }
+
+            function generatePrintDocument() {
+                const selectedCheckboxes = document.querySelectorAll('.print-level-cb:checked');
+                
+                if (selectedCheckboxes.length === 0) {
+                    printErrorMsg.textContent = 'Por favor, selecciona al menos un nivel.';
+                    printErrorMsg.classList.remove('hidden');
+                    return;
+                }
+
+                printErrorMsg.classList.add('hidden');
+                const isPro = document.getElementById('print-pro-cb').checked;
+                const numVersions = parseInt(document.getElementById('print-versions').value) || 1;
+                
+                let selectedTitles = [];
+
+                selectedCheckboxes.forEach(cb => {
+                    const index = parseInt(cb.value);
+                    // Mostramos el título completo del nivel en la cabecera de la ficha
+                    selectedTitles.push(levels[index].title);
+                });
+
+                let html = '';
+                
+                let solutionsHtml = `
+                    <div class="page-break w-full mx-auto font-sans text-gray-900 pt-6">
+                        <div class="border-b-4 border-green-800 pb-3 mb-6 flex justify-between items-end">
+                            <div>
+                                <h1 class="text-2xl font-black text-green-900 uppercase tracking-wide">HOJA DE SOLUCIONES</h1>
+                                <p class="text-base text-gray-700 mt-1 font-semibold">
+                                    Cálculo Mental CEIP El Romeral ${isPro ? '<span class="ml-2 text-orange-600">(Reto PRO 🏆)</span>' : ''}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-${numVersions > 2 ? '2' : '1'} gap-6">
+                `;
+
+                for (let v = 1; v <= numVersions; v++) {
+                    let allLevelProblems = [];
+                    
+                    selectedCheckboxes.forEach(cb => {
+                        const index = parseInt(cb.value);
+                        const level = levels[index];
+                        let generator = isPro ? (level.generateProProblems || level.generateProblems) : level.generateProblems;
+                        if (!generator) generator = placeholderGenerateProblems;
+                        
+                        let problems = generator();
+                        problems = problems.filter(p => p.answer !== '...'); 
+                        
+                        if (problems.length > 0) {
+                            // Barajar internamente los problemas de este nivel (Fisher-Yates)
+                            for (let i = problems.length - 1; i > 0; i--) {
+                                const j = Math.floor(Math.random() * (i + 1));
+                                [problems[i], problems[j]] = [problems[j], problems[i]];
+                            }
+                            allLevelProblems.push(problems);
+                        }
+                    });
+
+                    if (allLevelProblems.length === 0) {
+                        printErrorMsg.textContent = 'Los niveles seleccionados aún no tienen ejercicios disponibles para imprimir.';
+                        printErrorMsg.classList.remove('hidden');
+                        return;
+                    }
+
+                    // Reparto equitativo (Round-Robin) para garantizar que salgan problemas de TODOS los niveles seleccionados
+                    let finalProblems = [];
+                    let pIndex = 0;
+                    while (finalProblems.length < 20 && allLevelProblems.some(arr => arr.length > 0)) {
+                        let currentLevelArray = allLevelProblems[pIndex % allLevelProblems.length];
+                        if (currentLevelArray.length > 0) {
+                            finalProblems.push(currentLevelArray.pop());
+                        }
+                        pIndex++;
+                    }
+
+                    // Barajar la selección final de los 20 problemas (Fisher-Yates)
+                    for (let i = finalProblems.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [finalProblems[i], finalProblems[j]] = [finalProblems[j], finalProblems[i]];
+                    }
+
+                    const pageBreakClass = v > 1 ? 'page-break pt-6' : '';
+                    
+                    html += `
+                        <div class="${pageBreakClass} w-full mx-auto font-sans text-gray-900">
+                            <div class="border-b-4 border-blue-800 pb-3 mb-5 flex justify-between items-end">
+                                <div>
+                                    <h1 class="text-2xl font-black text-blue-900 uppercase tracking-wide">CÁLCULO MENTAL CEIP EL ROMERAL</h1>
+                                    <p class="text-base text-gray-700 mt-1 font-semibold">
+                                        Niveles: ${selectedTitles.join(', ')}
+                                        ${isPro ? '<span class="ml-2 text-orange-600">(Reto PRO 🏆)</span>' : ''}
+                                    </p>
+                                </div>
+                                <div class="text-right text-gray-500 text-sm font-bold bg-gray-100 px-3 py-1 rounded">
+                                    VERSIÓN ${v}
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between mb-14 text-base">
+                                <div class="flex-1 mr-8 flex items-end">
+                                    <span class="font-bold mr-3 text-gray-800">Nombre:</span> 
+                                    <div class="flex-1 border-b-2 border-gray-400"></div>
+                                </div>
+                                <div class="w-64 flex items-end">
+                                    <span class="font-bold mr-3 text-gray-800">Fecha:</span> 
+                                    <div class="flex-1 border-b-2 border-gray-400"></div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-x-12 gap-y-10 text-lg font-medium px-2">
+                    `;
+
+                    let versionSolutions = `
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm break-inside-avoid">
+                            <h3 class="font-bold text-lg mb-3 border-b border-gray-300 pb-2 text-gray-800">Versión ${v}</h3>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                    `;
+
+                    finalProblems.forEach((p, index) => {
+                        html += `
+                            <div class="flex items-center">
+                                <span class="w-8 inline-block font-bold text-gray-400 text-right pr-2">${index + 1}.</span>
+                                <span class="flex-1 text-right pr-3 text-xl tracking-wide">${p.text} = </span>
+                                <span class="w-28 border-b-2 border-gray-50 inline-block"></span>
+                            </div>
+                        `;
+                        
+                        const ansStr = Number(p.answer.toPrecision(15)).toString().replace('.', ',');
+                        versionSolutions += `
+                            <div class="flex">
+                                <span class="w-6 text-gray-500 font-bold">${index + 1}.</span> 
+                                <span class="flex-1">${p.text} =</span> 
+                                <span class="font-bold text-green-700 ml-1">${ansStr}</span>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
+                            <div class="mt-12 text-center text-xs text-gray-400">
+                                Ficha generada por Asistente Docente - ¡Mucho ánimo y a calcular!
+                            </div>
+                        </div>
+                    `;
+
+                    versionSolutions += `</div></div>`;
+                    solutionsHtml += versionSolutions;
+                }
+
+                solutionsHtml += `</div></div>`;
+                html += solutionsHtml;
+
+                // ESTRATEGIA PARA SALIR DEL IFRAME: ABRIR EN NUEVA PESTAÑA
+                const tailwindScript = '<script src="https://cdn.tailwindcss.com"></s' + 'cript>';
+                const printScript = '<script>setTimeout(() => { window.print(); }, 1000);</s' + 'cript>';
+
+                const fullHtml = `<!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Cálculo Mental - Ficha</title>
+                    ${tailwindScript}
+                    <style>
+                        @media print {
+                            @page { size: A4; margin: 1.5cm; }
+                            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background: white; }
+                            .page-break { page-break-before: always !important; }
+                            .no-print { display: none !important; }
+                        }
+                        /* Añadir soporte para que las soluciones no se corten por la mitad en la impresión */
+                        .break-inside-avoid { break-inside: avoid; }
+                    </style>
+                </head>
+                <body class="bg-white text-gray-900 font-sans">
+                    <div class="no-print w-full text-center py-6 bg-blue-50 border-b border-blue-200 mb-8 shadow-sm">
+                        <p class="text-blue-800 font-bold text-xl mb-2">🖨️ Ficha lista para imprimir</p>
+                        <p class="text-sm text-blue-600 mb-4">El diálogo de impresión se abrirá en un instante. Si no ocurre, presiona Ctrl+P (Cmd+P en Mac).</p>
+                        <button onclick="window.print()" class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold shadow-md hover:bg-blue-700 transition-colors">
+                            Imprimir Ficha Manualmente
+                        </button>
+                    </div>
+                    ${html}
+                    ${printScript}
+                </body>
+                </html>`;
+
+                let printWin = null;
+                try {
+                    // Intentamos abrir directamente la nueva pestaña aislando el contenido
+                    printWin = window.open('', '_blank');
+                } catch (e) {
+                    console.warn("Ventana emergente bloqueada por el navegador");
+                }
+
+                if (printWin) {
+                    printWin.document.open();
+                    printWin.document.write(fullHtml);
+                    printWin.document.close();
+                    closePrintModal();
+                } else {
+                    // FALLBACK: Si el navegador bloqueó la ventana emergente, creamos un enlace directo.
+                    // Al ser el usuario quien hace click directamente, se saltará el bloqueo.
+                    const blob = new Blob([fullHtml], { type: 'text/html' });
+                    const blobUrl = URL.createObjectURL(blob);
+
+                    const fallbackHtml = `
+                        <div class="no-print w-full flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6 text-center">
+                            <div class="bg-white p-10 rounded-2xl shadow-xl max-w-2xl border-t-8 border-orange-500">
+                                <h2 class="text-orange-600 font-black text-3xl mb-4">⚠️ Ventana emergente bloqueada</h2>
+                                <p class="text-gray-700 mb-8 font-medium text-lg leading-relaxed">
+                                    Para que la ficha se imprima correctamente (sin los menús del blog del colegio), debe abrirse de forma aislada. Haz clic en el botón verde para generarla:
+                                </p>
+                                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                                    <a href="${blobUrl}" target="_blank" onclick="document.getElementById('back-to-app-btn').click()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl transition-transform transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 text-lg w-full sm:w-auto">
+                                        📄 Abrir Ficha Limpia
+                                    </a>
+                                    <button id="back-to-app-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 px-8 rounded-xl transition-colors shadow flex items-center justify-center w-full sm:w-auto text-lg">
+                                        ⬅ Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    printSection.innerHTML = fallbackHtml;
+
+                    document.getElementById('app-container').classList.add('hidden');
+                    printSection.classList.remove('hidden');
+                    document.body.classList.remove('flex', 'items-center', 'justify-center', 'bg-gray-100');
+                    document.body.classList.add('block', 'bg-white');
+
+                    document.getElementById('back-to-app-btn').addEventListener('click', () => {
+                        printSection.classList.add('hidden');
+                        document.getElementById('app-container').classList.remove('hidden');
+                        document.body.classList.add('flex', 'items-center', 'justify-center', 'bg-gray-100');
+                        document.body.classList.remove('block', 'bg-white');
+                        printSection.innerHTML = '';
+                    });
+
+                    closePrintModal();
+                }
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>
